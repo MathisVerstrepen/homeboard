@@ -1,0 +1,23 @@
+# Golang
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+*.prof
+*.trace
+*.test
+*.test.out
+*.test.prof
+*.test.trace
+/vendor/
+/go.sum
+/tmp
+
+# Node.js
+node_modules/
+
+# Env
+.env
