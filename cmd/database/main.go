@@ -7,7 +7,9 @@ import (
 	"log"
 	"os"
 	"path"
+	"strings"
 
+	"github.com/h2non/bimg" // apt install libvips-dev
 	"github.com/labstack/echo/v4"
 	_ "github.com/lib/pq"
 )
@@ -83,23 +85,45 @@ func (c *Conn) UploadBackground(ctx echo.Context) (Background, error) {
 	}
 	defer src.Close()
 
-	req := c.Conn.QueryRow(
-		"INSERT INTO background (filename) VALUES ($1) RETURNING *;", file.Filename,
-	)
-	res := Background{}
-	err = req.Scan(&res.Id, &res.Filename, &res.Created_at, &res.Selected)
-	if err != nil {
-		return Background{}, err
-	}
-	fmt.Println(res)
-
-	dst, err := os.Create(path.Join("./images/background", file.Filename))
+	imgPath := path.Join("./images/background", file.Filename)
+	dst, err := os.Create(imgPath)
 	if err != nil {
 		return Background{}, err
 	}
 	defer dst.Close()
 
 	if _, err = io.Copy(dst, src); err != nil {
+		return Background{}, err
+	}
+
+	// Convert image to webp
+	buffer, err := bimg.Read(imgPath)
+	if err != nil {
+		return Background{}, err
+	}
+
+	newImage, err := bimg.NewImage(buffer).Convert(bimg.WEBP)
+	if err != nil {
+		return Background{}, err
+	}
+
+	if bimg.NewImage(newImage).Type() != "webp" {
+		return Background{}, err
+	}
+	newPath := strings.Replace(imgPath, path.Ext(imgPath), ".webp", 1)
+	bimg.Write(newPath, newImage)
+
+	err = os.Remove(imgPath)
+	if err != nil {
+		return Background{}, err
+	}
+
+	req := c.Conn.QueryRow(
+		"INSERT INTO background (filename) VALUES ($1) RETURNING *;", path.Base(newPath),
+	)
+	res := Background{}
+	err = req.Scan(&res.Id, &res.Filename, &res.Created_at, &res.Selected)
+	if err != nil {
 		return Background{}, err
 	}
 
