@@ -13,6 +13,7 @@ import (
 	"golang.org/x/net/websocket"
 
 	db "diikstra.fr/homeboard/cmd/database"
+	mod "diikstra.fr/homeboard/cmd/home/modules"
 )
 
 type Templates struct {
@@ -53,10 +54,17 @@ type PageData struct {
 	Title      string
 	Page       string
 	Background db.Background
+	HomeLayout HomeLayoutData
 }
 
 type BackgroundData struct {
 	Backgrounds *[]db.Background
+}
+
+type HomeLayoutData struct {
+	NRows  int
+	NCols  int
+	Blocks []mod.HomeModule
 }
 
 func main() {
@@ -86,6 +94,11 @@ func main() {
 			Title:      "Home",
 			Page:       "home",
 			Background: globalPageData.Background,
+			HomeLayout: HomeLayoutData{
+				NRows:  5,
+				NCols:  3,
+				Blocks: []mod.HomeModule{},
+			},
 		}
 		return c.Render(200, "home.html", &newPageData)
 	})
@@ -146,6 +159,32 @@ func main() {
 		}
 
 		return c.NoContent(200)
+	})
+
+	e.GET("/home/edit", func(c echo.Context) error {
+		c.Render(200, "home.html/header_buttons_out", nil)
+		return c.Render(200, "home.html/block_edit", nil)
+	})
+
+	e.POST("/home/edit", func(c echo.Context) error {
+		c.Render(200, "home.html/header_buttons", nil)
+		return c.NoContent(200)
+	})
+
+	e.GET("/home/add/list", func(c echo.Context) error {
+		modules := []mod.ModuleMetada{
+			{
+				Name:  "Letterboxd",
+				Icon:  "letterboxd",
+				Sizes: []string{"1x1"},
+			}, {
+				Name:  "Radarr",
+				Icon:  "radarr",
+				Sizes: []string{"1x1"},
+			},
+		}
+
+		return c.Render(200, "home.html/add-block-popup", modules)
 	})
 
 	e.GET("/ping", func(c echo.Context) error {

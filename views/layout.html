@@ -39,16 +39,18 @@
     </div>
 
     <div class="absolute shadow-md top-0 left-0 h-screen w-screen z-10 flex items-center">
-        <div class="backdrop-blur-2xl h-[97%] w-[98%] m-auto border border-white border-opacity-25 rounded-[32px] p-4" 
+        <div class="backdrop-blur-2xl h-[97%] w-[98%] m-auto border border-white border-opacity-25 rounded-[32px] p-4 flex flex-col" 
             id="content-wrapper">
             {{ template "header" . }}
             {{ block "content" . }}{{end}}
         </div>
     </div>
+
+    {{ template "svg" . }}
 </body>
 
 </html>
 
 {{ define "background" }}
-<img src="/images/background/{{ .Background.Filename }}" alt="background" class="h-full w-full object-cover" loading="eager">
+<img src="/images/background/{{ .Background.Filename }}" alt="background" class="h-full w-full object-cover">
 {{ end }}

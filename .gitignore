@@ -21,3 +21,10 @@ node_modules/
 
 # Env
 .env
+
+# Images
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.webp
