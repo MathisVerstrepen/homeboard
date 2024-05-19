@@ -34,7 +34,10 @@ func GetCachedKey(rdb *redis.Client, key string, value any) error {
 }
 
 func SetCachedKey(rdb *redis.Client, key string, value interface{}) error {
-	valueBytes, _ := json.Marshal(value)
+	valueBytes, err := json.Marshal(value)
+	if err != nil {
+		return err
+	}
 
 	return rdb.Set(ctx, key, valueBytes, 5*time.Minute).Err()
 }
