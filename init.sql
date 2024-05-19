@@ -5,4 +5,4 @@ CREATE TABLE IF NOT EXISTS background (
     selected BOOLEAN DEFAULT FALSE
 );
 
-INSERT INTO background (filename) VALUES ('background1.jpg');
+INSERT INTO background (filename, selected) VALUES ('default.webp', 't');

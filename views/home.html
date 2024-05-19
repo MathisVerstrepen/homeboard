@@ -1,6 +1,7 @@
 {{ template "layout.html" . }}
 
 {{ define "content" }}
+<div hx-get="/home/modules" hx-trigger="revealed" class="invisible"></div>
 <div id="content" class="h-full w-full overflow-y-scroll">
     {{ block "home_layout" .HomeLayout }}{{ end }}
 </div>
@@ -10,6 +11,15 @@
 <div id="layout" class="h-full w-full grid gird-cols grid-cols-3 grid-rows-[repeat({{ .NRows }},_33%)] justify-items-center items-center "
     style='grid-template-columns: repeat({{ .NCols }}, minmax(0, 1fr));grid-template-rows: repeat({{ .NRows }}, 33%);'
 >
+    <div id="card_1_1"></div>
+    <div id="card_1_2"></div>
+    <div id="card_1_3"></div>
+    <div id="card_2_1"></div>
+    <div id="card_2_2"></div>
+    <div id="card_3_2"></div>
+    <div id="card_1_3"></div>
+    <div id="card_2_3"></div>
+    <div id="card_3_3"></div>
 </div>
 {{ end }}
 
@@ -71,7 +81,7 @@ hx-get="/home/edit" hx-target="#layout" hx-swap-oob="true" hx-swap="outerHTML"
 {{ define "header_buttons_out" }}
 <div role="button" class="flex items-center text-c-red bg-c-red bg-opacity-10 py-2 px-3 rounded-2xl border border-c-red border-opacity-15 
 w-12 h-12 hover:bg-opacity-15 duration-200" id="button_home_edit"
-hx-post="/home/edit" hx-target="#layout" hx-swap-oob="true" hx-swap="outerHTML"
+hx-post="/home/edit" hx-target="#layout" hx-swap-oob="true"
 >
     <svg><use href="#x-mark"></use></svg>
 </div>

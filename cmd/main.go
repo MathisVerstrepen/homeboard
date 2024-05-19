@@ -4,6 +4,8 @@ import (
 	"html/template"
 	"io"
 	"log"
+	"path/filepath"
+	"runtime"
 	"strconv"
 	"strings"
 
@@ -12,8 +14,10 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 	"golang.org/x/net/websocket"
 
+	c "diikstra.fr/homeboard/cmd/cache"
 	db "diikstra.fr/homeboard/cmd/database"
 	mod "diikstra.fr/homeboard/cmd/home/modules"
+	f "github.com/MathisVerstrepen/go-module/webfetch"
 )
 
 type Templates struct {
@@ -64,15 +68,27 @@ type BackgroundData struct {
 type HomeLayoutData struct {
 	NRows  int
 	NCols  int
-	Blocks []mod.HomeModule
+	Blocks []mod.Module
 }
+
+var (
+	_, b, _, _ = runtime.Caller(0)
+	basepath   = filepath.Dir(b)
+)
 
 func main() {
 	err := godotenv.Load(".env")
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
-	conn := db.Connect()
+
+	dbConn := db.Connect()
+	cache := c.Connect()
+
+	proxies := f.InitFetchers(basepath)
+	moduleService := mod.ModuleService{
+		Proxies: proxies,
+	}
 
 	e := echo.New()
 	e.Use(middleware.Logger())
@@ -81,8 +97,9 @@ func main() {
 
 	e.Renderer = newTemplate()
 
-	background, err := conn.GetSelectedBackground()
+	background, err := dbConn.GetSelectedBackground()
 	if err != nil {
+		log.Printf("%v", err)
 		log.Fatal("Fail to fetch selected background")
 	}
 	globalPageData := PageData{
@@ -95,12 +112,20 @@ func main() {
 			Page:       "home",
 			Background: globalPageData.Background,
 			HomeLayout: HomeLayoutData{
-				NRows:  5,
-				NCols:  3,
-				Blocks: []mod.HomeModule{},
+				NRows: 5,
+				NCols: 3,
 			},
 		}
+
 		return c.Render(200, "home.html", &newPageData)
+	})
+
+	e.GET("/home/modules", func(c echo.Context) error {
+		for _, module := range moduleService.GetModulesMetadata() {
+			moduleService.RenderModule(c, cache, module.Name)
+		}
+
+		return c.NoContent(200)
 	})
 
 	e.GET("/settings", func(c echo.Context) error {
@@ -114,12 +139,12 @@ func main() {
 
 	e.GET("/settings/backgrounds", func(c echo.Context) error {
 		return c.Render(200, "settings.html/bg-popup", BackgroundData{
-			Backgrounds: conn.GetBackgrounds(),
+			Backgrounds: dbConn.GetBackgrounds(),
 		})
 	})
 
 	e.POST("/settings/backgrounds", func(c echo.Context) error {
-		bg, err := conn.UploadBackground(c)
+		bg, err := dbConn.UploadBackground(c)
 		if err != nil {
 			return err
 		}
@@ -136,7 +161,7 @@ func main() {
 
 		c.Render(200, "settings.html/oob-button-bg-select", globalPageData.Background)
 
-		background, err = conn.SetSelectedBackground(id)
+		background, err = dbConn.SetSelectedBackground(id)
 		if err != nil {
 			return c.String(400, "Fail to set new background :"+err.Error())
 		}
@@ -153,7 +178,7 @@ func main() {
 			return c.String(400, "Invalid id")
 		}
 
-		err = conn.DeleteBackground(id)
+		err = dbConn.DeleteBackground(id)
 		if err != nil {
 			return c.String(400, "Fail to delete")
 		}
@@ -172,17 +197,7 @@ func main() {
 	})
 
 	e.GET("/home/add/list", func(c echo.Context) error {
-		modules := []mod.ModuleMetada{
-			{
-				Name:  "Letterboxd",
-				Icon:  "letterboxd",
-				Sizes: []string{"1x1"},
-			}, {
-				Name:  "Radarr",
-				Icon:  "radarr",
-				Sizes: []string{"1x1"},
-			},
-		}
+		modules := moduleService.GetModulesMetadata()
 
 		return c.Render(200, "home.html/add-block-popup", modules)
 	})

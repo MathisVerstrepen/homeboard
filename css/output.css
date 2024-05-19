@@ -558,12 +558,20 @@ video {
   pointer-events: none;
 }
 
+.invisible {
+  visibility: hidden;
+}
+
 .absolute {
   position: absolute;
 }
 
 .relative {
   position: relative;
+}
+
+.bottom-0 {
+  bottom: 0px;
 }
 
 .left-0 {
@@ -634,6 +642,10 @@ video {
   margin-right: 2rem;
 }
 
+.mt-1 {
+  margin-top: 0.25rem;
+}
+
 .block {
   display: block;
 }
@@ -676,6 +688,10 @@ video {
 
 .h-7 {
   height: 1.75rem;
+}
+
+.h-8 {
+  height: 2rem;
 }
 
 .h-\[90\%\] {
@@ -731,6 +747,10 @@ video {
   width: 1.75rem;
 }
 
+.w-8 {
+  width: 2rem;
+}
+
 .w-\[90\%\] {
   width: 90%;
 }
@@ -750,6 +770,10 @@ video {
 
 .w-screen {
   width: 100vw;
+}
+
+.max-w-full {
+  max-width: 100%;
 }
 
 .-translate-x-1\/2 {
@@ -776,6 +800,10 @@ video {
 
 .grid-rows-3 {
   grid-template-rows: repeat(3, minmax(0, 1fr));
+}
+
+.grid-rows-\[22\%_78\%\] {
+  grid-template-rows: 22% 78%;
 }
 
 .flex-col {
@@ -810,6 +838,12 @@ video {
   margin-left: calc(0.5rem * calc(1 - var(--tw-space-x-reverse)));
 }
 
+.space-x-3 > :not([hidden]) ~ :not([hidden]) {
+  --tw-space-x-reverse: 0;
+  margin-right: calc(0.75rem * var(--tw-space-x-reverse));
+  margin-left: calc(0.75rem * calc(1 - var(--tw-space-x-reverse)));
+}
+
 .space-x-4 > :not([hidden]) ~ :not([hidden]) {
   --tw-space-x-reverse: 0;
   margin-right: calc(1rem * var(--tw-space-x-reverse));
@@ -838,12 +872,24 @@ video {
   justify-self: center;
 }
 
+.overflow-hidden {
+  overflow: hidden;
+}
+
 .overflow-x-scroll {
   overflow-x: scroll;
 }
 
 .overflow-y-scroll {
   overflow-y: scroll;
+}
+
+.overflow-ellipsis {
+  text-overflow: ellipsis;
+}
+
+.whitespace-nowrap {
+  white-space: nowrap;
 }
 
 .rounded-2xl {
@@ -856,6 +902,10 @@ video {
 
 .rounded-\[32px\] {
   border-radius: 32px;
+}
+
+.rounded-full {
+  border-radius: 9999px;
 }
 
 .rounded-lg {
@@ -934,6 +984,10 @@ video {
   --tw-bg-opacity: 0.2;
 }
 
+.bg-opacity-25 {
+  --tw-bg-opacity: 0.25;
+}
+
 .bg-opacity-5 {
   --tw-bg-opacity: 0.05;
 }
@@ -953,6 +1007,11 @@ video {
 
 .p-4 {
   padding: 1rem;
+}
+
+.px-1 {
+  padding-left: 0.25rem;
+  padding-right: 0.25rem;
 }
 
 .px-10 {
@@ -990,6 +1049,11 @@ video {
   padding-bottom: 0.5rem;
 }
 
+.py-5 {
+  padding-top: 1.25rem;
+  padding-bottom: 1.25rem;
+}
+
 .py-8 {
   padding-top: 2rem;
   padding-bottom: 2rem;
@@ -1004,9 +1068,18 @@ video {
   line-height: 2.25rem;
 }
 
+.text-\[10px\] {
+  font-size: 10px;
+}
+
 .text-lg {
   font-size: 1.125rem;
   line-height: 1.75rem;
+}
+
+.text-sm {
+  font-size: 0.875rem;
+  line-height: 1.25rem;
 }
 
 .text-xl {

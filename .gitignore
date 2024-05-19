@@ -28,3 +28,6 @@ node_modules/
 *.jpeg
 *.gif
 *.webp
+
+/data
+proxies.txt
