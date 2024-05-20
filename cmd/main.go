@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"html/template"
 	"io"
 	"log"
@@ -45,6 +46,32 @@ func newTemplate() *Templates {
 		"eq": func(a, b interface{}) bool {
 			return a == b
 		},
+		"iterate": func(n int) []string {
+			return make([]string, n)
+		},
+		// Create a dict from passed values that can be used in template after
+		"dict": func(values ...interface{}) map[string]interface{} {
+			dict := make(map[string]interface{})
+			for i := 0; i < len(values); i += 2 {
+				key, ok := values[i].(string)
+				if !ok {
+					continue
+				}
+				if i+1 < len(values) {
+					dict[key] = values[i+1]
+				}
+			}
+			return dict
+		},
+		"blockIds": func(ncols, nrows int) []string {
+			ids := make([]string, ncols*nrows)
+			for row := range nrows {
+				for col := range ncols {
+					ids[row*3+col] = fmt.Sprintf("card_%d_%d", row+1, col+1)
+				}
+			}
+			return ids
+		},
 	}
 
 	// https://stackoverflow.com/questions/36617949/how-to-use-base-template-file-for-golang-html-template
@@ -68,7 +95,12 @@ type BackgroundData struct {
 type HomeLayoutData struct {
 	NRows  int
 	NCols  int
-	Blocks []mod.Module
+	Layout *[]db.ModulePosition
+}
+
+type HomeAddPopup struct {
+	Position string
+	Modules  []mod.ModuleMetada
 }
 
 var (
@@ -84,6 +116,13 @@ func main() {
 
 	dbConn := db.Connect()
 	cache := c.Connect()
+
+	homeLayout := HomeLayoutData{
+		NRows:  3,
+		NCols:  3,
+		Layout: dbConn.GetHomeLayouts(),
+	}
+	fmt.Println(*homeLayout.Layout)
 
 	proxies := f.InitFetchers(basepath)
 	moduleService := mod.ModuleService{
@@ -111,19 +150,35 @@ func main() {
 			Title:      "Home",
 			Page:       "home",
 			Background: globalPageData.Background,
-			HomeLayout: HomeLayoutData{
-				NRows: 5,
-				NCols: 3,
-			},
+			HomeLayout: homeLayout,
 		}
 
 		return c.Render(200, "home.html", &newPageData)
 	})
 
 	e.GET("/home/modules", func(c echo.Context) error {
-		for _, module := range moduleService.GetModulesMetadata() {
-			moduleService.RenderModule(c, cache, module.Name)
+		modules := moduleService.GetModulesMetadata()
+		for _, modulePosition := range *homeLayout.Layout {
+			for _, module := range modules {
+				if modulePosition.ModuleName == module.Name {
+					moduleService.RenderModule(c, cache, module.Name, modulePosition.Position)
+				}
+			}
 		}
+
+		return c.NoContent(200)
+	})
+
+	e.POST("/home/modules/:moduleName/:position", func(c echo.Context) error {
+		moduleName := c.Param("moduleName")
+		position := c.Param("position")
+
+		err := dbConn.SetHomeLayout(position, moduleName)
+		if err != nil {
+			return err
+		}
+
+		homeLayout.Layout = dbConn.GetHomeLayouts()
 
 		return c.NoContent(200)
 	})
@@ -188,18 +243,21 @@ func main() {
 
 	e.GET("/home/edit", func(c echo.Context) error {
 		c.Render(200, "home.html/header_buttons_out", nil)
-		return c.Render(200, "home.html/block_edit", nil)
+		return c.Render(200, "home.html/block_edit", &homeLayout)
 	})
 
 	e.POST("/home/edit", func(c echo.Context) error {
 		c.Render(200, "home.html/header_buttons", nil)
-		return c.NoContent(200)
+		return c.Render(200, "home.html/home_layout", &homeLayout)
 	})
 
-	e.GET("/home/add/list", func(c echo.Context) error {
-		modules := moduleService.GetModulesMetadata()
+	e.GET("/home/add/list/:position", func(c echo.Context) error {
+		data := HomeAddPopup{
+			Position: c.Param("position"),
+			Modules:  moduleService.GetModulesMetadata(),
+		}
 
-		return c.Render(200, "home.html/add-block-popup", modules)
+		return c.Render(200, "home.html/add-block-popup", data)
 	})
 
 	e.GET("/ping", func(c echo.Context) error {

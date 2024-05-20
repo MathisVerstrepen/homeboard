@@ -18,7 +18,7 @@ type ModuleMetada struct {
 
 type Module struct {
 	GetMetadata func() ModuleMetada
-	RenderView  func(echo.Context, *redis.Client, string, f.Fetcher)
+	RenderView  func(echo.Context, *redis.Client, string, string, f.Fetcher)
 }
 
 var modules = []Module{
@@ -38,13 +38,13 @@ func (ms ModuleService) GetModulesMetadata() []ModuleMetada {
 	return modulesMetadata
 }
 
-func (ms ModuleService) RenderModule(ctx echo.Context, rdb *redis.Client, name string) error {
+func (ms ModuleService) RenderModule(ctx echo.Context, rdb *redis.Client, name string, position string) error {
 	for _, module := range modules {
 		if module.GetMetadata().Name == name {
-			module.RenderView(ctx, rdb, name, (*ms.Proxies)[0])
+			module.RenderView(ctx, rdb, name, position, (*ms.Proxies)[0])
 			return nil
 		}
 	}
 
-	return errors.New("feur")
+	return errors.New("no module named " + name + " found")
 }

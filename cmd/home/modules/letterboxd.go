@@ -33,7 +33,7 @@ var letterboxdModuleMetada = ModuleMetada{
 	Name:     "Letterboxd",
 	Icon:     "letterboxd",
 	Sizes:    []string{"1x1"},
-	Position: "card_1_1",
+	Position: "",
 	CacheKey: "letterboxd_recent__friends_movies",
 }
 
@@ -41,7 +41,7 @@ var letterboxdModule = Module{
 	GetMetadata: func() ModuleMetada {
 		return letterboxdModuleMetada
 	},
-	RenderView: func(ctx echo.Context, rdb *redis.Client, name string, fetcher f.Fetcher) {
+	RenderView: func(ctx echo.Context, rdb *redis.Client, name string, position string, fetcher f.Fetcher) {
 		var moviesData []MovieData
 
 		err := c.GetCachedKey(rdb, letterboxdModuleMetada.CacheKey, &moviesData)
@@ -54,6 +54,7 @@ var letterboxdModule = Module{
 			}
 		}
 
+		letterboxdModuleMetada.Position = position
 		ctx.Render(200, "letterboxd.html/card", &RenderData{
 			MovieData: moviesData,
 			Metadata:  letterboxdModuleMetada,
@@ -114,7 +115,10 @@ func GetFriendsRecentMovies(fetcher f.Fetcher) []MovieData {
 			ClassNames: "rating",
 			Multiple:   false,
 		})
-		rating := strings.TrimSpace(ratingNode[0].FirstChild.Data)
+		rating := "\u2001"
+		if len(ratingNode) > 0 {
+			rating = strings.TrimSpace(ratingNode[0].FirstChild.Data)
+		}
 
 		moviesData = append(moviesData, MovieData{
 			Poster:      posterUrl,

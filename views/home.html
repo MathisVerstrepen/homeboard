@@ -1,46 +1,34 @@
 {{ template "layout.html" . }}
 
 {{ define "content" }}
-<div hx-get="/home/modules" hx-trigger="revealed" class="invisible"></div>
 <div id="content" class="h-full w-full overflow-y-scroll">
     {{ block "home_layout" .HomeLayout }}{{ end }}
 </div>
 {{ end }}
 
 {{ define "home_layout" }}
-<div id="layout" class="h-full w-full grid gird-cols grid-cols-3 grid-rows-[repeat({{ .NRows }},_33%)] justify-items-center items-center "
+<div id="layout" class="h-full w-full grid justify-items-center items-center"
     style='grid-template-columns: repeat({{ .NCols }}, minmax(0, 1fr));grid-template-rows: repeat({{ .NRows }}, 33%);'
 >
-    <div id="card_1_1"></div>
-    <div id="card_1_2"></div>
-    <div id="card_1_3"></div>
-    <div id="card_2_1"></div>
-    <div id="card_2_2"></div>
-    <div id="card_3_2"></div>
-    <div id="card_1_3"></div>
-    <div id="card_2_3"></div>
-    <div id="card_3_3"></div>
+    {{ range $index, $elem := blockIds .NCols .NRows }}
+        <div id="{{$elem}}"></div>
+    {{ end }}
+    <span hx-get="/home/modules" hx-trigger="revealed" class="absolute"></span>
 </div>
 {{ end }}
 
 {{ define "block_edit" }}
-<div id="layout" class="h-full w-full grid grid-cols-3 grid-rows-3 justify-items-center items-center ">
-    {{ block "grid_add_block" . }}{{end}}
-    {{ block "grid_add_block" . }}{{end}}
-    {{ block "grid_add_block" . }}{{end}}
-    {{ block "grid_add_block" . }}{{end}}
-    {{ block "grid_add_block" . }}{{end}}
-    {{ block "grid_add_block" . }}{{end}}
-    {{ block "grid_add_block" . }}{{end}}
-    {{ block "grid_add_block" . }}{{end}}
-    {{ block "grid_add_block" . }}{{end}}      
+<div id="layout" class="h-full w-full grid justify-items-center items-center"
+    style='grid-template-columns: repeat({{ .NCols }}, minmax(0, 1fr));grid-template-rows: repeat({{ .NRows }}, 33%);'>
+    {{ range $index, $elem := blockIds .NCols .NRows }}
+        {{ template "grid_add_block" dict "id" $elem }}
+    {{ end }}     
 </div>
 {{ end }}
 
 {{ define "grid_add_block" }}
-<div class="w-[90%] h-[90%] bg-white bg-opacity-5 hover:bg-opacity-10 duration-300 rounded-xl flex items-center justify-center"
-    role="button" hx-get="/home/add/list" hx-swap="beforeend" hx-target="#content"
->
+<div id="{{ .id }}" class="w-[90%] h-[90%] bg-white bg-opacity-5 hover:bg-opacity-10 duration-300 rounded-xl flex items-center justify-center"
+    role="button" hx-get="/home/add/list/{{.id}}" hx-swap="beforeend" hx-target="#content">
     <svg class="h-16 w-16 opacity-20"><use href="#plus"></use></svg>
 </div>
 {{ end }}
@@ -56,16 +44,18 @@
     <h2 class="text-xl font-bold text-white mb-4">Select module</h2>
 
     <div class="flex flex-col space-y-2">
-    {{ range . }}
+    {{ range .Modules }}
         <div class="w-full bg-white bg-opacity-5 hover:bg-opacity-10 duration-200 border border-white border-opacity-20 rounded-xl py-2 px-4 flex items-center space-x-2"
             role="button"
+            hx-post="/home/modules/{{.Name}}/{{$.Position}}"
+            hx-target="#add-block-popup"
+            hx-swap="delete"
         >
             <img src="/images/modules/{{ .Icon }}/icon.png" alt="{{ .Icon }}_icon" class="h-5">
             <p class="font-bold text-white">{{ .Name }}</p>            
         </div>
     {{ end }}        
     </div>
-
 </div>
 {{ end }}
 
@@ -76,12 +66,13 @@ hx-get="/home/edit" hx-target="#layout" hx-swap-oob="true" hx-swap="outerHTML"
 >
     <svg><use href="#plus"></use></svg>
 </div>
+
 {{ end }}
 
 {{ define "header_buttons_out" }}
 <div role="button" class="flex items-center text-c-red bg-c-red bg-opacity-10 py-2 px-3 rounded-2xl border border-c-red border-opacity-15 
 w-12 h-12 hover:bg-opacity-15 duration-200" id="button_home_edit"
-hx-post="/home/edit" hx-target="#layout" hx-swap-oob="true"
+hx-post="/home/edit" hx-target="#layout" hx-swap-oob="true" hx-swap="outerHTML"
 >
     <svg><use href="#x-mark"></use></svg>
 </div>

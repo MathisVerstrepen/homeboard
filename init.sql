@@ -6,3 +6,8 @@ CREATE TABLE IF NOT EXISTS background (
 );
 
 INSERT INTO background (filename, selected) VALUES ('default.webp', 't');
+
+CREATE TABLE IF NOT EXISTS home_layout (
+    position TEXT PRIMARY KEY,
+    module_name TEXT NOT NULL
+);
