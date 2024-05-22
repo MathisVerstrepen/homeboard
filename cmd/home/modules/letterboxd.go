@@ -3,7 +3,6 @@ package modules
 import (
 	"log"
 	"os"
-	"regexp"
 	"strings"
 
 	c "diikstra.fr/homeboard/cmd/cache"
@@ -101,7 +100,7 @@ func GetFriendsRecentMovies(fetcher f.Fetcher) []MovieData {
 		filmId := gs.GetAttribute(movieNode.FirstChild.NextSibling, "data-film-id")
 		filmSlug := gs.GetAttribute(movieNode.FirstChild.NextSibling, "data-film-slug")
 
-		posterUrl := constructPosterURL(filmId, filmSlug)
+		posterUrl := getPosterURL(fetcher, filmSlug)
 
 		ownerImgNode := gs.GetNodeByClass(movieNode, &gs.HtmlSelector{
 			Tag:        "a",
@@ -133,18 +132,27 @@ func GetFriendsRecentMovies(fetcher f.Fetcher) []MovieData {
 	return moviesData
 }
 
-func constructPosterURL(filmId string, filmSlug string) string {
-	url := "https://a.ltrbxd.com/resized/film-poster/"
+func getPosterURL(fetcher f.Fetcher, filmSlug string) string {
+	body := fetcher.FetchData(f.FetcherParams{
+		Method: "GET",
+		Url:    "https://letterboxd.com/ajax/poster/film/" + filmSlug + "/std/150x225/",
+		Body:   nil,
+		Headers: f.Header{
+			"Cookie": os.Getenv("LETTERBOXD_COOKIES"),
+		},
+		Params:       f.Param{},
+		UseProxy:     true,
+		WantErrCodes: nil,
+	})
 
-	for _, filmIdChar := range strings.Split(filmId, "") {
-		url += filmIdChar + "/"
-	}
+	parsedBody, _ := html.Parse(strings.NewReader(string(body)))
 
-	// Remove the date present at the end of certain movie slug (like "-1999")
-	re := regexp.MustCompile(`-(19|20)\d{2}$`)
-	cleanFilmSlug := re.ReplaceAllString(filmSlug, "")
+	imgNode := gs.GetNodeByClass(parsedBody, &gs.HtmlSelector{
+		Id:         "",
+		Tag:        "img",
+		ClassNames: "image",
+		Multiple:   false,
+	})
 
-	url += filmId + "-" + cleanFilmSlug + "-0-150-0-225-crop.jpg"
-
-	return url
+	return gs.GetAttribute(imgNode[0], "src")
 }
