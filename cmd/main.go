@@ -131,6 +131,9 @@ func main() {
 
 	e := echo.New()
 	e.Use(middleware.Logger())
+	e.Use(middleware.GzipWithConfig(middleware.GzipConfig{
+		Level: 5,
+	}))
 	e.Static("/images", "images")
 	e.Static("/css", "css")
 
@@ -180,6 +183,7 @@ func main() {
 
 		homeLayout.Layout = dbConn.GetHomeLayouts()
 
+		moduleService.RenderModule(c, cache, moduleName, position)
 		return c.NoContent(200)
 	})
 
@@ -243,7 +247,29 @@ func main() {
 
 	e.GET("/home/edit", func(c echo.Context) error {
 		c.Render(200, "home.html/header_buttons_out", nil)
-		return c.Render(200, "home.html/block_edit", &homeLayout)
+
+		nCols := homeLayout.NCols
+		nRows := homeLayout.NRows
+		ids := make([]string, 0)
+		for row := range nRows {
+			for col := range nCols {
+				position := fmt.Sprintf("card_%d_%d", row+1, col+1)
+
+				present := false
+				for _, layout := range *homeLayout.Layout {
+					if layout.Position == position {
+						present = true
+						break
+					}
+				}
+
+				if !present {
+					ids = append(ids, position)
+				}
+			}
+		}
+
+		return c.Render(200, "home.html/block_edit", ids)
 	})
 
 	e.POST("/home/edit", func(c echo.Context) error {
