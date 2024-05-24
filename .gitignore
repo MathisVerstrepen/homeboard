@@ -12,9 +12,11 @@
 *.test.out
 *.test.prof
 *.test.trace
+/pkg/
 /vendor/
 /go.sum
 /tmp
+*_templ.go
 
 # Node.js
 node_modules/

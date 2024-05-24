@@ -1,0 +1,102 @@
+package views
+
+templ Header() {
+	<div class="w-full relative mb-2">
+		<nav class="bg-c-grey rounded-3xl h-16 bg-opacity-75 w-2/3 m-auto grid grid-cols-[17%_66%_17%] grid-rows-1 backdrop-blur-2xl">
+			<a role="button" href="/" class="justify-self-start self-center text-white text-lg font-bold pl-8">
+				HomeBoard
+			</a>
+			<div class="flex self-center justify-self-center h-2/3 space-x-4">
+				<a
+					role="button"
+					href="/services"
+					class="bg-white bg-opacity-10 rounded-2xl px-10 flex items-center text-white 
+                font-bold hover:bg-opacity-5 border border-white border-opacity-0 hover:border-opacity-25 duration-200"
+				>
+					Services
+				</a>
+				<a
+					role="button"
+					href="/homelab"
+					class="bg-white bg-opacity-10 rounded-2xl px-10 flex items-center text-white 
+                font-bold hover:bg-opacity-5 border border-white border-opacity-0 hover:border-opacity-25 duration-200"
+				>
+					Homelab
+				</a>
+				<a
+					role="button"
+					href="/linkhub"
+					class="bg-white bg-opacity-10 rounded-2xl px-10 flex items-center text-white 
+                font-bold hover:bg-opacity-5 border border-white border-opacity-0 hover:border-opacity-25 duration-200"
+				>
+					LinkHub
+				</a>
+			</div>
+			<a
+				role="button"
+				class='self-center justify-self-end mr-6 p-2 rounded-2xl border border-white 
+            {{if eq .Page "settings"}} bg-white bg-opacity-5 border-opacity-25 {{else}} border-opacity-0 {{end}}'
+				href="settings"
+			>
+				<svg class="w-7 h-7 hover:rotate-90 duration-300"><use href="#cog-6"></use></svg>
+			</a>
+		</nav>
+		<script>
+        function showBgImage(action) {
+            if (action == "show") {
+                document.getElementById('content').style.opacity = 0;
+                document.getElementById('content-wrapper').classList.remove("backdrop-blur-2xl")
+            } else {
+                document.getElementById('content').style.opacity = 100;
+                document.getElementById('content-wrapper').classList.add("backdrop-blur-2xl")
+            }
+            
+        }
+    </script>
+		<div class="absolute top-2 left-2 flex space-x-4">
+			<div
+				role="button"
+				class="flex items-center text-white bg-white bg-opacity-10 py-2 px-3 rounded-2xl border border-white border-opacity-15 
+        w-12 h-12 hover:bg-opacity-15 duration-200"
+				onmouseover="showBgImage('show')"
+				onmouseout="showBgImage('hide')"
+			>
+				<svg><use href="#photo"></use></svg>
+			</div>
+			@Header_buttons()
+		</div>
+	</div>
+}
+
+templ Header_buttons() {
+	<div
+		role="button"
+		class="flex items-center text-white bg-white bg-opacity-10 py-2 px-3 rounded-2xl border border-white border-opacity-15 
+    w-12 h-12 hover:bg-opacity-15 duration-200"
+		id="button_home_edit"
+		hx-get="/home/edit"
+		hx-target="#layout"
+		hx-swap-oob="true"
+		hx-swap="none"
+	>
+		<svg>
+			<use href="#plus"></use>
+		</svg>
+	</div>
+}
+
+templ Header_buttons_out() {
+	<div
+		role="button"
+		class="flex items-center text-c-red bg-c-red bg-opacity-10 py-2 px-3 rounded-2xl border border-c-red border-opacity-15 
+w-12 h-12 hover:bg-opacity-15 duration-200"
+		id="button_home_edit"
+		hx-post="/home/edit"
+		hx-target="#layout"
+		hx-swap-oob="true"
+	>
+		<svg>
+			<use href="#x-mark"></use>
+		</svg>
+	</div>
+}

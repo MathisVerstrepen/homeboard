@@ -2,14 +2,13 @@ package main
 
 import (
 	"fmt"
-	"html/template"
-	"io"
 	"log"
+	"net/http"
 	"path/filepath"
 	"runtime"
 	"strconv"
-	"strings"
 
+	"github.com/a-h/templ"
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -18,89 +17,21 @@ import (
 	c "diikstra.fr/homeboard/cmd/cache"
 	db "diikstra.fr/homeboard/cmd/database"
 	mod "diikstra.fr/homeboard/cmd/home/modules"
+	views "diikstra.fr/homeboard/views"
 	f "github.com/MathisVerstrepen/go-module/webfetch"
+
+	. "diikstra.fr/homeboard/cmd/models"
 )
 
-type Templates struct {
-	templates *template.Template
-}
+func Render(ctx echo.Context, statusCode int, t templ.Component) error {
+	buf := templ.GetBuffer()
+	defer templ.ReleaseBuffer(buf)
 
-func (t *Templates) Render(w io.Writer, name string, data interface{}, c echo.Context) error {
-	tmpl := template.Must(t.templates.Clone())
-
-	// Case when we need to render a block define in a html file
-	// name syntax is <filename.html>/<blockname>
-	if strings.Contains(name, "/") {
-		names := strings.Split(name, "/")
-		tmpl = template.Must(tmpl.ParseGlob("views/" + names[0]))
-		return tmpl.ExecuteTemplate(w, names[1], data)
+	if err := t.Render(ctx.Request().Context(), buf); err != nil {
+		return err
 	}
 
-	tmpl = template.Must(tmpl.ParseGlob("views/" + name))
-	return tmpl.ExecuteTemplate(w, name, data)
-}
-
-func newTemplate() *Templates {
-	// Define fonctions available in html template context
-	funcMap := template.FuncMap{
-		"eq": func(a, b interface{}) bool {
-			return a == b
-		},
-		"iterate": func(n int) []string {
-			return make([]string, n)
-		},
-		// Create a dict from passed values that can be used in template after
-		"dict": func(values ...interface{}) map[string]interface{} {
-			dict := make(map[string]interface{})
-			for i := 0; i < len(values); i += 2 {
-				key, ok := values[i].(string)
-				if !ok {
-					continue
-				}
-				if i+1 < len(values) {
-					dict[key] = values[i+1]
-				}
-			}
-			return dict
-		},
-		"blockIds": func(ncols, nrows int) []string {
-			ids := make([]string, ncols*nrows)
-			for row := range nrows {
-				for col := range ncols {
-					ids[row*3+col] = fmt.Sprintf("card_%d_%d", row+1, col+1)
-				}
-			}
-			return ids
-		},
-	}
-
-	// https://stackoverflow.com/questions/36617949/how-to-use-base-template-file-for-golang-html-template
-	templates := template.Must(template.New("").Funcs(funcMap).ParseGlob("views/*.html"))
-	return &Templates{
-		templates: templates,
-	}
-}
-
-type PageData struct {
-	Title      string
-	Page       string
-	Background db.Background
-	HomeLayout HomeLayoutData
-}
-
-type BackgroundData struct {
-	Backgrounds *[]db.Background
-}
-
-type HomeLayoutData struct {
-	NRows  int
-	NCols  int
-	Layout *[]db.ModulePosition
-}
-
-type HomeAddPopup struct {
-	Position string
-	Modules  []mod.ModuleMetada
+	return ctx.HTML(statusCode, buf.String())
 }
 
 var (
@@ -137,8 +68,6 @@ func main() {
 	e.Static("/images", "images")
 	e.Static("/css", "css")
 
-	e.Renderer = newTemplate()
-
 	background, err := dbConn.GetSelectedBackground()
 	if err != nil {
 		log.Printf("%v", err)
@@ -156,7 +85,7 @@ func main() {
 			HomeLayout: homeLayout,
 		}
 
-		return c.Render(200, "home.html", &newPageData)
+		return Render(c, http.StatusOK, views.Root(views.Home(homeLayout), newPageData))
 	})
 
 	e.GET("/home/modules", func(c echo.Context) error {
@@ -164,12 +93,18 @@ func main() {
 		for _, modulePosition := range *homeLayout.Layout {
 			for _, module := range modules {
 				if modulePosition.ModuleName == module.Name {
-					moduleService.RenderModule(c, cache, module.Name, modulePosition.Position)
+					statusCode, component, error := moduleService.RenderModule(cache, module.Name, modulePosition.Position)
+
+					if error != nil {
+						Render(c, http.StatusBadRequest, nil)
+					} else {
+						Render(c, statusCode, component)
+					}
 				}
 			}
 		}
 
-		return c.NoContent(200)
+		return nil
 	})
 
 	e.POST("/home/modules/:moduleName/:position", func(c echo.Context) error {
@@ -183,70 +118,16 @@ func main() {
 
 		homeLayout.Layout = dbConn.GetHomeLayouts()
 
-		moduleService.RenderModule(c, cache, moduleName, position)
-		return c.NoContent(200)
-	})
-
-	e.GET("/settings", func(c echo.Context) error {
-		newPageData := PageData{
-			Title:      "Settings",
-			Page:       "settings",
-			Background: globalPageData.Background,
+		statusCode, component, error := moduleService.RenderModule(cache, moduleName, position)
+		if error != nil {
+			return Render(c, http.StatusBadRequest, nil)
+		} else {
+			return Render(c, statusCode, component)
 		}
-		return c.Render(200, "settings.html", &newPageData)
-	})
-
-	e.GET("/settings/backgrounds", func(c echo.Context) error {
-		return c.Render(200, "settings.html/bg-popup", BackgroundData{
-			Backgrounds: dbConn.GetBackgrounds(),
-		})
-	})
-
-	e.POST("/settings/backgrounds", func(c echo.Context) error {
-		bg, err := dbConn.UploadBackground(c)
-		if err != nil {
-			return err
-		}
-
-		return c.Render(200, "settings.html/bg-item", bg)
-	})
-
-	e.POST("/settings/backgrounds/selected/:id", func(c echo.Context) error {
-		idBg := c.Param("id")
-		id, err := strconv.Atoi(idBg)
-		if err != nil {
-			return c.String(400, "Invalid id")
-		}
-
-		c.Render(200, "settings.html/oob-button-bg-select", globalPageData.Background)
-
-		background, err = dbConn.SetSelectedBackground(id)
-		if err != nil {
-			return c.String(400, "Fail to set new background :"+err.Error())
-		}
-		globalPageData.Background = background
-
-		c.Render(200, "settings.html/oob-button-bg-selected", background)
-		return c.Render(200, "layout.html/background", globalPageData)
-	})
-
-	e.DELETE("/settings/backgrounds/:id", func(c echo.Context) error {
-		idBg := c.Param("id")
-		id, err := strconv.Atoi(idBg)
-		if err != nil {
-			return c.String(400, "Invalid id")
-		}
-
-		err = dbConn.DeleteBackground(id)
-		if err != nil {
-			return c.String(400, "Fail to delete")
-		}
-
-		return c.NoContent(200)
 	})
 
 	e.GET("/home/edit", func(c echo.Context) error {
-		c.Render(200, "home.html/header_buttons_out", nil)
+		Render(c, http.StatusOK, views.Header_buttons_out())
 
 		nCols := homeLayout.NCols
 		nRows := homeLayout.NRows
@@ -269,21 +150,80 @@ func main() {
 			}
 		}
 
-		return c.Render(200, "home.html/block_edit", ids)
+		return Render(c, http.StatusOK, views.BlockEdit(ids))
 	})
 
 	e.POST("/home/edit", func(c echo.Context) error {
-		c.Render(200, "home.html/header_buttons", nil)
-		return c.Render(200, "home.html/home_layout", &homeLayout)
+		Render(c, http.StatusOK, views.Header_buttons())
+		return Render(c, http.StatusOK, views.HomeLayout(homeLayout))
 	})
 
 	e.GET("/home/add/list/:position", func(c echo.Context) error {
-		data := HomeAddPopup{
+		addPopupData := HomeAddPopup{
 			Position: c.Param("position"),
 			Modules:  moduleService.GetModulesMetadata(),
 		}
 
-		return c.Render(200, "home.html/add-block-popup", data)
+		return Render(c, http.StatusOK, views.AddBlockPopup(addPopupData))
+	})
+
+	e.GET("/settings", func(c echo.Context) error {
+		newPageData := PageData{
+			Title:      "Settings",
+			Page:       "settings",
+			Background: globalPageData.Background,
+		}
+
+		return Render(c, http.StatusOK, views.Root(views.Settings(), newPageData))
+	})
+
+	e.GET("/settings/backgrounds", func(c echo.Context) error {
+		return Render(c, http.StatusOK, views.BgPopup(BackgroundData{
+			Backgrounds: dbConn.GetBackgrounds(),
+		}))
+	})
+
+	e.POST("/settings/backgrounds", func(c echo.Context) error {
+		bg, err := dbConn.UploadBackground(c)
+		if err != nil {
+			return err
+		}
+
+		return Render(c, http.StatusOK, views.BgItem(bg))
+	})
+
+	e.POST("/settings/backgrounds/selected/:id", func(c echo.Context) error {
+		idBg := c.Param("id")
+		id, err := strconv.Atoi(idBg)
+		if err != nil {
+			return c.String(400, "Invalid id")
+		}
+
+		Render(c, http.StatusOK, views.OobButtonBgSelect(globalPageData.Background))
+
+		background, err = dbConn.SetSelectedBackground(id)
+		if err != nil {
+			return c.String(400, "Fail to set new background :"+err.Error())
+		}
+		globalPageData.Background = background
+
+		Render(c, http.StatusOK, views.OobButtonBgSelected(background))
+		return Render(c, http.StatusOK, views.Background(globalPageData))
+	})
+
+	e.DELETE("/settings/backgrounds/:id", func(c echo.Context) error {
+		idBg := c.Param("id")
+		id, err := strconv.Atoi(idBg)
+		if err != nil {
+			return nil
+		}
+
+		err = dbConn.DeleteBackground(id)
+		if err != nil {
+			return nil
+		}
+
+		return nil
 	})
 
 	e.GET("/ping", func(c echo.Context) error {

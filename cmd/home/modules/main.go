@@ -4,21 +4,15 @@ import (
 	"errors"
 
 	f "github.com/MathisVerstrepen/go-module/webfetch"
-	"github.com/labstack/echo/v4"
+	"github.com/a-h/templ"
 	"github.com/redis/go-redis/v9"
-)
 
-type ModuleMetada struct {
-	Name     string
-	Icon     string
-	Sizes    []string
-	Position string
-	CacheKey string
-}
+	. "diikstra.fr/homeboard/cmd/models"
+)
 
 type Module struct {
 	GetMetadata func() ModuleMetada
-	RenderView  func(echo.Context, *redis.Client, string, string, f.Fetcher)
+	RenderView  func(*redis.Client, string, string, f.Fetcher) (int, templ.Component, error)
 }
 
 var modules = []Module{
@@ -38,13 +32,12 @@ func (ms ModuleService) GetModulesMetadata() []ModuleMetada {
 	return modulesMetadata
 }
 
-func (ms ModuleService) RenderModule(ctx echo.Context, rdb *redis.Client, name string, position string) error {
+func (ms ModuleService) RenderModule(rdb *redis.Client, name string, position string) (int, templ.Component, error) {
 	for _, module := range modules {
 		if module.GetMetadata().Name == name {
-			module.RenderView(ctx, rdb, name, position, (*ms.Proxies)[0])
-			return nil
+			return module.RenderView(rdb, name, position, (*ms.Proxies)[0])
 		}
 	}
 
-	return errors.New("no module named " + name + " found")
+	return 0, nil, errors.New("no module named " + name + " found")
 }

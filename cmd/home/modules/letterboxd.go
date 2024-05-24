@@ -2,45 +2,35 @@ package modules
 
 import (
 	"log"
+	"net/http"
 	"os"
 	"strings"
 
 	c "diikstra.fr/homeboard/cmd/cache"
+	views "diikstra.fr/homeboard/views"
 	gs "github.com/MathisVerstrepen/go-module/gosoup"
 	f "github.com/MathisVerstrepen/go-module/webfetch"
-	"github.com/labstack/echo/v4"
+	"github.com/a-h/templ"
 	"github.com/redis/go-redis/v9"
+
+	. "diikstra.fr/homeboard/cmd/models"
 
 	"golang.org/x/net/html"
 )
-
-type MovieData struct {
-	Poster      string
-	Owner       string
-	OwnerAvatar string
-	Rating      string
-	Slug        string
-	Id          string
-}
-
-type RenderData struct {
-	MovieData []MovieData
-	Metadata  ModuleMetada
-}
 
 var letterboxdModuleMetada = ModuleMetada{
 	Name:     "Letterboxd",
 	Icon:     "letterboxd",
 	Sizes:    []string{"1x1"},
 	Position: "",
-	CacheKey: "letterboxd_recent__friends_movies",
+	CacheKey: "letterboxd_recent_friends_movies",
 }
 
 var letterboxdModule = Module{
 	GetMetadata: func() ModuleMetada {
 		return letterboxdModuleMetada
 	},
-	RenderView: func(ctx echo.Context, rdb *redis.Client, name string, position string, fetcher f.Fetcher) {
+	RenderView: func(rdb *redis.Client, name string, position string, fetcher f.Fetcher) (int, templ.Component, error) {
 		var moviesData []MovieData
 
 		err := c.GetCachedKey(rdb, letterboxdModuleMetada.CacheKey, &moviesData)
@@ -54,10 +44,11 @@ var letterboxdModule = Module{
 		}
 
 		letterboxdModuleMetada.Position = position
-		ctx.Render(200, "letterboxd.html/card", &RenderData{
+
+		return http.StatusOK, views.LetterboxdCard(RenderData{
 			MovieData: moviesData,
 			Metadata:  letterboxdModuleMetada,
-		})
+		}), nil
 	},
 }
 
