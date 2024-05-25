@@ -63,7 +63,7 @@ func (c *Conn) UploadBackground(ctx echo.Context) (Background, error) {
 	}
 	defer src.Close()
 
-	imgPath := path.Join("./images/background", file.Filename)
+	imgPath := path.Join("./assets/images/background", file.Filename)
 	dst, err := os.Create(imgPath)
 	if err != nil {
 		return Background{}, err
@@ -115,7 +115,7 @@ func (c *Conn) DeleteBackground(id int) error {
 		return err
 	}
 
-	err = os.Remove(path.Join("./images/background", filename))
+	err = os.Remove(path.Join("./assets/images/background", filename))
 	if err != nil {
 		return err
 	}

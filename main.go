@@ -8,31 +8,20 @@ import (
 	"runtime"
 	"strconv"
 
-	"github.com/a-h/templ"
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"golang.org/x/net/websocket"
 
-	c "diikstra.fr/homeboard/cmd/cache"
-	db "diikstra.fr/homeboard/cmd/database"
-	mod "diikstra.fr/homeboard/cmd/home/modules"
-	views "diikstra.fr/homeboard/views"
+	comp "diikstra.fr/homeboard/components"
+	c "diikstra.fr/homeboard/db/cache"
+	mod "diikstra.fr/homeboard/services/home/modules"
 	f "github.com/MathisVerstrepen/go-module/webfetch"
 
-	. "diikstra.fr/homeboard/cmd/models"
+	"diikstra.fr/homeboard/db/database"
+	"diikstra.fr/homeboard/handlers"
+	"diikstra.fr/homeboard/models"
 )
-
-func Render(ctx echo.Context, statusCode int, t templ.Component) error {
-	buf := templ.GetBuffer()
-	defer templ.ReleaseBuffer(buf)
-
-	if err := t.Render(ctx.Request().Context(), buf); err != nil {
-		return err
-	}
-
-	return ctx.HTML(statusCode, buf.String())
-}
 
 var (
 	_, b, _, _ = runtime.Caller(0)
@@ -45,10 +34,10 @@ func main() {
 		log.Fatal("Error loading .env file")
 	}
 
-	dbConn := db.Connect()
+	dbConn := database.Connect()
 	cache := c.Connect()
 
-	homeLayout := HomeLayoutData{
+	homeLayout := models.HomeLayoutData{
 		NRows:  3,
 		NCols:  3,
 		Layout: dbConn.GetHomeLayouts(),
@@ -65,27 +54,26 @@ func main() {
 	e.Use(middleware.GzipWithConfig(middleware.GzipConfig{
 		Level: 5,
 	}))
-	e.Static("/images", "images")
-	e.Static("/css", "css")
+	e.Static("/assets", "assets")
 
 	background, err := dbConn.GetSelectedBackground()
 	if err != nil {
 		log.Printf("%v", err)
 		log.Fatal("Fail to fetch selected background")
 	}
-	globalPageData := PageData{
+	globalPageData := models.PageData{
 		Background: background,
 	}
 
 	e.GET("/", func(c echo.Context) error {
-		newPageData := PageData{
+		newPageData := models.PageData{
 			Title:      "Home",
 			Page:       "home",
 			Background: globalPageData.Background,
 			HomeLayout: homeLayout,
 		}
 
-		return Render(c, http.StatusOK, views.Root(views.Home(homeLayout), newPageData))
+		return handlers.Render(c, http.StatusOK, comp.Root(comp.Home(homeLayout), newPageData))
 	})
 
 	e.GET("/home/modules", func(c echo.Context) error {
@@ -96,9 +84,9 @@ func main() {
 					statusCode, component, error := moduleService.RenderModule(cache, module.Name, modulePosition.Position)
 
 					if error != nil {
-						Render(c, http.StatusBadRequest, nil)
+						handlers.Render(c, http.StatusBadRequest, nil)
 					} else {
-						Render(c, statusCode, component)
+						handlers.Render(c, statusCode, component)
 					}
 				}
 			}
@@ -120,14 +108,14 @@ func main() {
 
 		statusCode, component, error := moduleService.RenderModule(cache, moduleName, position)
 		if error != nil {
-			return Render(c, http.StatusBadRequest, nil)
+			return handlers.Render(c, http.StatusBadRequest, nil)
 		} else {
-			return Render(c, statusCode, component)
+			return handlers.Render(c, statusCode, component)
 		}
 	})
 
 	e.GET("/home/edit", func(c echo.Context) error {
-		Render(c, http.StatusOK, views.Header_buttons_out())
+		handlers.Render(c, http.StatusOK, comp.Header_buttons_out())
 
 		nCols := homeLayout.NCols
 		nRows := homeLayout.NRows
@@ -150,35 +138,35 @@ func main() {
 			}
 		}
 
-		return Render(c, http.StatusOK, views.BlockEdit(ids))
+		return handlers.Render(c, http.StatusOK, comp.BlockEdit(ids))
 	})
 
 	e.POST("/home/edit", func(c echo.Context) error {
-		Render(c, http.StatusOK, views.Header_buttons())
-		return Render(c, http.StatusOK, views.HomeLayout(homeLayout))
+		handlers.Render(c, http.StatusOK, comp.Header_buttons())
+		return handlers.Render(c, http.StatusOK, comp.HomeLayout(homeLayout))
 	})
 
 	e.GET("/home/add/list/:position", func(c echo.Context) error {
-		addPopupData := HomeAddPopup{
+		addPopupData := models.HomeAddPopup{
 			Position: c.Param("position"),
 			Modules:  moduleService.GetModulesMetadata(),
 		}
 
-		return Render(c, http.StatusOK, views.AddBlockPopup(addPopupData))
+		return handlers.Render(c, http.StatusOK, comp.AddBlockPopup(addPopupData))
 	})
 
 	e.GET("/settings", func(c echo.Context) error {
-		newPageData := PageData{
+		newPageData := models.PageData{
 			Title:      "Settings",
 			Page:       "settings",
 			Background: globalPageData.Background,
 		}
 
-		return Render(c, http.StatusOK, views.Root(views.Settings(), newPageData))
+		return handlers.Render(c, http.StatusOK, comp.Root(comp.Settings(), newPageData))
 	})
 
 	e.GET("/settings/backgrounds", func(c echo.Context) error {
-		return Render(c, http.StatusOK, views.BgPopup(BackgroundData{
+		return handlers.Render(c, http.StatusOK, comp.BgPopup(models.BackgroundData{
 			Backgrounds: dbConn.GetBackgrounds(),
 		}))
 	})
@@ -189,7 +177,7 @@ func main() {
 			return err
 		}
 
-		return Render(c, http.StatusOK, views.BgItem(bg))
+		return handlers.Render(c, http.StatusOK, comp.BgItem(bg))
 	})
 
 	e.POST("/settings/backgrounds/selected/:id", func(c echo.Context) error {
@@ -199,7 +187,7 @@ func main() {
 			return c.String(400, "Invalid id")
 		}
 
-		Render(c, http.StatusOK, views.OobButtonBgSelect(globalPageData.Background))
+		handlers.Render(c, http.StatusOK, comp.OobButtonBgSelect(globalPageData.Background))
 
 		background, err = dbConn.SetSelectedBackground(id)
 		if err != nil {
@@ -207,8 +195,8 @@ func main() {
 		}
 		globalPageData.Background = background
 
-		Render(c, http.StatusOK, views.OobButtonBgSelected(background))
-		return Render(c, http.StatusOK, views.Background(globalPageData))
+		handlers.Render(c, http.StatusOK, comp.OobButtonBgSelected(background))
+		return handlers.Render(c, http.StatusOK, comp.Background(globalPageData))
 	})
 
 	e.DELETE("/settings/backgrounds/:id", func(c echo.Context) error {

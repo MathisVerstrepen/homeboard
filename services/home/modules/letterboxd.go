@@ -6,19 +6,19 @@ import (
 	"os"
 	"strings"
 
-	c "diikstra.fr/homeboard/cmd/cache"
-	views "diikstra.fr/homeboard/views"
+	comp "diikstra.fr/homeboard/components"
+	c "diikstra.fr/homeboard/db/cache"
 	gs "github.com/MathisVerstrepen/go-module/gosoup"
 	f "github.com/MathisVerstrepen/go-module/webfetch"
 	"github.com/a-h/templ"
 	"github.com/redis/go-redis/v9"
 
-	. "diikstra.fr/homeboard/cmd/models"
+	"diikstra.fr/homeboard/models"
 
 	"golang.org/x/net/html"
 )
 
-var letterboxdModuleMetada = ModuleMetada{
+var letterboxdModuleMetada = models.ModuleMetada{
 	Name:     "Letterboxd",
 	Icon:     "letterboxd",
 	Sizes:    []string{"1x1"},
@@ -26,12 +26,12 @@ var letterboxdModuleMetada = ModuleMetada{
 	CacheKey: "letterboxd_recent_friends_movies",
 }
 
-var letterboxdModule = Module{
-	GetMetadata: func() ModuleMetada {
+var letterboxdModule = models.Module{
+	GetMetadata: func() models.ModuleMetada {
 		return letterboxdModuleMetada
 	},
 	RenderView: func(rdb *redis.Client, name string, position string, fetcher f.Fetcher) (int, templ.Component, error) {
-		var moviesData []MovieData
+		var moviesData []models.LetterboxdMovieData
 
 		err := c.GetCachedKey(rdb, letterboxdModuleMetada.CacheKey, &moviesData)
 		if err != nil {
@@ -45,14 +45,14 @@ var letterboxdModule = Module{
 
 		letterboxdModuleMetada.Position = position
 
-		return http.StatusOK, views.LetterboxdCard(RenderData{
+		return http.StatusOK, comp.LetterboxdCard(models.LetterboxdRenderData{
 			MovieData: moviesData,
 			Metadata:  letterboxdModuleMetada,
 		}), nil
 	},
 }
 
-func GetFriendsRecentMovies(fetcher f.Fetcher) []MovieData {
+func GetFriendsRecentMovies(fetcher f.Fetcher) []models.LetterboxdMovieData {
 	body := fetcher.FetchData(f.FetcherParams{
 		Method: "GET",
 		Url:    "https://letterboxd.com/",
@@ -76,7 +76,7 @@ func GetFriendsRecentMovies(fetcher f.Fetcher) []MovieData {
 
 	if len(groupNode) == 0 {
 		log.Println("Failed to get recent friends watch")
-		return []MovieData{}
+		return []models.LetterboxdMovieData{}
 	}
 
 	friendsMovies := gs.GetNodeByClass(groupNode[0], &gs.HtmlSelector{
@@ -85,7 +85,7 @@ func GetFriendsRecentMovies(fetcher f.Fetcher) []MovieData {
 		Multiple:   true,
 	})
 
-	var moviesData []MovieData
+	var moviesData []models.LetterboxdMovieData
 	for _, movieNode := range friendsMovies[:len(friendsMovies)-1] {
 		owner := gs.GetAttribute(movieNode, "data-owner")
 		filmId := gs.GetAttribute(movieNode.FirstChild.NextSibling, "data-film-id")
@@ -110,7 +110,7 @@ func GetFriendsRecentMovies(fetcher f.Fetcher) []MovieData {
 			rating = strings.TrimSpace(ratingNode[0].FirstChild.Data)
 		}
 
-		moviesData = append(moviesData, MovieData{
+		moviesData = append(moviesData, models.LetterboxdMovieData{
 			Poster:      posterUrl,
 			Owner:       owner,
 			OwnerAvatar: ownerPfpUrl,

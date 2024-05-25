@@ -1,7 +1,7 @@
-package views
+package components
 
 import (
-	. "diikstra.fr/homeboard/cmd/models"
+	. "diikstra.fr/homeboard/models"
 )
 
 templ layout(contents templ.Component, pd PageData) {
@@ -12,9 +12,9 @@ templ layout(contents templ.Component, pd PageData) {
         <meta charset="UTF-8"></meta>
         <meta name="viewport" content="width=device-width, initial-scale=1.0"></meta>
 
-        <link rel="icon" href="/images/favicon.ico" type="image/x-icon"></link>
+        <link rel="icon" href="/assets/favicon/favicon.ico" type="image/x-icon"></link>
 
-        <link rel="stylesheet" href="/css/output.css"></link>
+        <link rel="stylesheet" href="/assets/css/output.css"></link>
         <title>HomeBoard - {pd.Title}</title>
 
         <script src="https://unpkg.com/htmx.org@1.9.12"
@@ -61,7 +61,7 @@ templ layout(contents templ.Component, pd PageData) {
 }
 
 templ Background(pd PageData) {
-<img src={"/images/background/" + pd.Background.Filename} alt="background" class="h-full w-full object-cover"></img>
+<img src={"/assets/images/background/" + pd.Background.Filename} alt="background" class="h-full w-full object-cover"></img>
 }
 
 templ Root(contents templ.Component, pd PageData) {

@@ -1,8 +1,8 @@
-package views
+package components
 
 import (
 	"fmt"
-	. "diikstra.fr/homeboard/cmd/models"
+	. "diikstra.fr/homeboard/models"
 )
 
 func getBlocksIds(ncols, nrows int) []string {
@@ -85,7 +85,7 @@ templ AddBlockPopup(hap HomeAddPopup) {
 					hx-target="#add-block-popup"
 					hx-swap="delete"
 				>
-					<img src={ "/images/modules/" + module.Icon + "/icon.png" } alt={ module.Icon + "_icon" } class="h-5"/>
+					<img src={ "/assets/images/modules/" + module.Icon + "/icon.png" } alt={ module.Icon + "_icon" } class="h-5"/>
 					<p class="font-bold text-white">{ module.Name }</p>
 				</div>
 			}
