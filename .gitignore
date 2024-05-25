@@ -31,5 +31,8 @@ node_modules/
 *.gif
 *.webp
 
+# Tailwind
+output.css
+
 /data
 proxies.txt
