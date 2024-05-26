@@ -1,0 +1,69 @@
+package components
+
+import (
+	. "diikstra.fr/homeboard/models"
+)
+
+templ layout(contents templ.Component, pd PageData) {
+    <!DOCTYPE html>
+    <html lang="en">
+
+    <head>
+        <meta charset="UTF-8"></meta>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"></meta>
+
+        <link rel="icon" href="/assets/favicon/favicon.ico" type="image/x-icon"></link>
+
+        <link rel="stylesheet" href="/assets/css/output.css"></link>
+        <title>HomeBoard - {pd.Title}</title>
+
+        <script src="https://unpkg.com/htmx.org@1.9.12"
+        integrity="sha384-ujb1lZYygJmzgSwoxRggbCHcjc0rB2XoQrxeTUQyRjrOnlCoYta87iKBWq3EsdM2"
+        crossorigin="anonymous"></script>
+
+        <script>
+            const socket = new WebSocket("ws://localhost:42069/ws");
+
+            socket.addEventListener("close", (event) => {
+                let interval = setInterval(() => {
+                    fetch("/").then((response) => {
+                        if (response.ok) {
+                            console.log("Connection closed, but ping fetched successfully!");
+                            clearInterval(interval);
+                            setTimeout(() => {
+                                window.location.reload();
+                                
+                            }, 100);
+                        }
+                    });
+                }, 200);
+            });
+        </script>
+    </head>
+
+    <body>
+        <div class="absolute top-0 left-0 h-screen w-screen z-0" id="background">
+            @Background(pd)
+        </div>
+
+        <div class="absolute shadow-md top-0 left-0 h-screen w-screen z-10 flex items-center">
+            <div class="backdrop-blur-2xl h-[97%] w-[98%] m-auto border border-white border-opacity-25 rounded-[32px] p-4 flex flex-col" 
+                id="content-wrapper">
+                @Header()
+                @contents
+            </div>
+        </div>
+
+        @Svg()
+    </body>
+
+    </html>
+}
+
+templ Background(pd PageData) {
+<img src={"/assets/images/background/" + pd.Background.Filename} alt="background" class="h-full w-full object-cover"></img>
+}
+
+templ Root(contents templ.Component, pd PageData) {
+    @layout(contents, pd)
+}

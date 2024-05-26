@@ -1,0 +1,50 @@
+package components
+
+import (
+	. "diikstra.fr/homeboard/models"
+)
+
+templ LetterboxdCard(rd LetterboxdRenderData) {
+	<div id={ rd.Metadata.Position } hx-swap-oob="true" class="h-full w-full p-2">
+		<div class="h-full grid grid-rows-[22%_78%] px-4 py-5 bg-black bg-opacity-10 backdrop-blur rounded-2xl">
+			<div class="flex mb-4 justify-between items-center">
+				<div class="flex space-x-3">
+					<img
+						src={ "/assets/images/modules/" + rd.Metadata.Icon + "/icon.png" }
+						alt={ "icon_" + rd.Metadata.Icon }
+						class="h-8 w-8"
+					/>
+					<h2 class="font-bold text-lg text-white">Letterboxd</h2>
+				</div>
+				<svg role="button" class="w-8 h-8 bg-white duration-200 rounded-lg bg-opacity-0 hover:bg-opacity-10 p-1">
+					<use href="#ellipsis-vertical"></use>
+				</svg>
+			</div>
+			<div class="grid grid-cols-5 h-full items-center">
+				for _, movie := range rd.MovieData {
+					@movieCard(movie)
+				}
+			</div>
+		</div>
+	</div>
+}
+
+templ movieCard(md LetterboxdMovieData) {
+	<a
+		id={ "movie-card-" + md.Id }
+		class="px-1 grid grid-rows-[90%_10%] h-full"
+		href={ templ.SafeURL("https://letterboxd.com/film/" + md.Slug) }
+		target="_blank"
+	>
+		<div class="rounded-lg overflow-hidden relative">
+			<img src={ md.Poster } alt={ "poster_movie_" + md.Id } loading="lazy"/>
+			<div
+				class="absolute h-6 bg-black bg-opacity-25 backdrop-blur bottom-0 left-0 w-full flex space-x-1 items-center px-1"
+			>
+				<img src={ md.OwnerAvatar } alt={ "avatar_" + md.OwnerAvatar } class="h-5 w-5 rounded-full"/>
+				<p class="text-white text-[10px] font-bold max-w-full overflow-ellipsis whitespace-nowrap">{ md.Owner }</p>
+			</div>
+		</div>
+		<p class="text-sm text-white">{ md.Rating }</p>
+	</a>
+}
