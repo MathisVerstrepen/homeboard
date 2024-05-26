@@ -2,6 +2,7 @@ package components
 
 import (
 	. "diikstra.fr/homeboard/models"
+	"fmt"
 )
 
 templ LetterboxdCard(rd LetterboxdRenderData) {
@@ -16,11 +17,16 @@ templ LetterboxdCard(rd LetterboxdRenderData) {
 					/>
 					<h2 class="font-bold text-lg text-white">Letterboxd</h2>
 				</div>
-				<svg role="button" class="w-8 h-8 bg-white duration-200 rounded-lg bg-opacity-0 hover:bg-opacity-10 p-1">
+				<svg role="button" class="w-8 h-8 bg-white duration-200 rounded-lg bg-opacity-0 hover:bg-opacity-10 p-1"
+                hx-get={ fmt.Sprintf("/home/modules/edit/%s/%s", rd.Metadata.Name, rd.Metadata.Position)}
+                hx-target={ fmt.Sprintf("#content_%s", rd.Metadata.Position) }
+                hx-swap="outerHTML"
+                id={ fmt.Sprintf("edit_%s", rd.Metadata.Position) }
+                >
 					<use href="#ellipsis-vertical"></use>
 				</svg>
 			</div>
-			<div class="grid grid-cols-5 h-full items-center">
+			<div class="grid grid-cols-5 h-full items-center relative" id={ fmt.Sprintf("content_%s", rd.Metadata.Position) }>
 				for _, movie := range rd.MovieData {
 					@movieCard(movie)
 				}

@@ -19,11 +19,14 @@ func main() {
 
 	// ---- Home Routes ---- //
 	e.GET("/", handlers.HomeHandler)
-	e.GET("/home/modules", handlers.HomeModulesHandler)
-	e.POST("/home/modules/:moduleName/:position", handlers.HomeAddModulePositionHandler)
 	e.GET("/home/edit", handlers.HomeGetEdit)
 	e.POST("/home/edit", handlers.HomePostEdit)
 	e.GET("/home/add/list/:position", handlers.HomeGetAddList)
+	e.GET("/home/modules", handlers.HomeModulesHandler)
+	e.GET("/home/module/:moduleName/:position", handlers.HomeModuleHandler)
+	e.DELETE("/home/module/:moduleName/:position", handlers.HomeModuleDelete)
+	e.POST("/home/modules/:moduleName/:position", handlers.HomeAddModulePositionHandler)
+	e.GET("/home/modules/edit/:moduleName/:position", handlers.HomeGetModuleEdit)
 
 	// ---- Settings Routes ---- //
 	e.GET("/settings", handlers.SettingsHandler)

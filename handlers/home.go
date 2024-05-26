@@ -21,44 +21,6 @@ func HomeHandler(c echo.Context) error {
 	return Render(c, http.StatusOK, comp.Root(comp.Home(homeLayout), newPageData))
 }
 
-func HomeModulesHandler(c echo.Context) error {
-	modules := moduleService.GetModulesMetadata()
-	for _, modulePosition := range *homeLayout.Layout {
-		for _, module := range modules {
-			if modulePosition.ModuleName == module.Name {
-				statusCode, component, error := moduleService.RenderModule(cache, module.Name, modulePosition.Position)
-
-				if error != nil {
-					Render(c, http.StatusBadRequest, nil)
-				} else {
-					Render(c, statusCode, component)
-				}
-			}
-		}
-	}
-
-	return nil
-}
-
-func HomeAddModulePositionHandler(c echo.Context) error {
-	moduleName := c.Param("moduleName")
-	position := c.Param("position")
-
-	err := dbConn.SetHomeLayout(position, moduleName)
-	if err != nil {
-		return err
-	}
-
-	homeLayout.Layout = dbConn.GetHomeLayouts()
-
-	statusCode, component, error := moduleService.RenderModule(cache, moduleName, position)
-	if error != nil {
-		return Render(c, http.StatusBadRequest, nil)
-	} else {
-		return Render(c, statusCode, component)
-	}
-}
-
 func HomeGetEdit(c echo.Context) error {
 	Render(c, http.StatusOK, comp.Header_buttons_out())
 
@@ -98,4 +60,83 @@ func HomeGetAddList(c echo.Context) error {
 	}
 
 	return Render(c, http.StatusOK, comp.AddBlockPopup(addPopupData))
+}
+
+func HomeModuleHandler(c echo.Context) error {
+	moduleName := c.Param("moduleName")
+	position := c.Param("position")
+
+	modules := moduleService.GetModulesMetadata()
+	for _, module := range modules {
+		if moduleName == module.Name {
+			statusCode, component, error := moduleService.RenderModule(cache, module.Name, position)
+
+			if error != nil {
+				return error
+			} else {
+				Render(c, statusCode, component)
+			}
+			return nil
+		}
+	}
+	return nil
+}
+
+func HomeModulesHandler(c echo.Context) error {
+	modules := moduleService.GetModulesMetadata()
+	for _, modulePosition := range *homeLayout.Layout {
+		for _, module := range modules {
+			if modulePosition.ModuleName == module.Name {
+				statusCode, component, error := moduleService.RenderModule(cache, module.Name, modulePosition.Position)
+
+				if error != nil {
+					Render(c, http.StatusBadRequest, nil)
+				} else {
+					Render(c, statusCode, component)
+				}
+			}
+		}
+	}
+
+	return nil
+}
+
+func HomeModuleDelete(c echo.Context) error {
+	moduleName := c.Param("moduleName")
+	position := c.Param("position")
+
+	err := dbConn.DeleteHomeLayout(position, moduleName)
+	if err != nil {
+		return err
+	}
+
+	homeLayout.Layout = dbConn.GetHomeLayouts()
+
+	return nil
+}
+
+func HomeAddModulePositionHandler(c echo.Context) error {
+	moduleName := c.Param("moduleName")
+	position := c.Param("position")
+
+	err := dbConn.SetHomeLayout(position, moduleName)
+	if err != nil {
+		return err
+	}
+
+	homeLayout.Layout = dbConn.GetHomeLayouts()
+
+	statusCode, component, error := moduleService.RenderModule(cache, moduleName, position)
+	if error != nil {
+		return Render(c, http.StatusBadRequest, nil)
+	} else {
+		return Render(c, statusCode, component)
+	}
+}
+
+func HomeGetModuleEdit(c echo.Context) error {
+	moduleName := c.Param("moduleName")
+	position := c.Param("position")
+
+	return Render(c, http.StatusOK, comp.ModuleEdit(moduleName, position))
 }

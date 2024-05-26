@@ -92,3 +92,35 @@ templ AddBlockPopup(hap HomeAddPopup) {
 		</div>
 	</div>
 }
+
+templ ModuleEdit(moduleName string, position string) {
+	<div id={ fmt.Sprintf("#content_%s", position) } class="h-full w-full p-2 flex space-x-4">
+		<div
+			role="button"
+			class="flex flex-col items-center justify-center text-c-red bg-c-red bg-opacity-10 py-2 px-3 rounded-2xl border border-c-red border-opacity-15 
+            h-full w-32 hover:bg-opacity-15 duration-200 mb-2"
+            hx-delete={ fmt.Sprintf("/home/module/%s/%s", moduleName, position) }
+            hx-target={ fmt.Sprintf("#%s", position) }
+		>
+			<svg class="w-5 h-5 mb-2"><use href="#trash"></use></svg>
+			<p class="text-center">Delete</p>
+		</div>
+        // TODO: Add force refresh
+		<div
+			role="button"
+			class="flex flex-col items-center justify-center text-c-cyan bg-c-cyan bg-opacity-10 py-2 px-3 rounded-2xl border border-c-cyan border-opacity-15 
+            h-full w-32 hover:bg-opacity-15 duration-200"
+		>
+			<svg class="w-5 h-5 mb-2"><use href="#refresh"></use></svg>
+			<p class="text-center">Force Refresh</p>
+		</div>
+	</div>
+
+    <svg role="button" class="w-8 h-8 bg-white duration-200 rounded-lg bg-opacity-0 hover:bg-opacity-10 p-1"
+        id={ fmt.Sprintf("edit_%s", position) } hx-swap-oob="true"
+        hx-get={ fmt.Sprintf("/home/module/%s/%s", moduleName, position) }
+        hx-swap="none"
+    >
+        <use href="#x-mark"></use>
+    </svg>
+}
