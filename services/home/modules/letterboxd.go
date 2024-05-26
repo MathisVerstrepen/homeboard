@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	comp "diikstra.fr/homeboard/components"
-	c "diikstra.fr/homeboard/db/cache"
+	c "diikstra.fr/homeboard/pkg/cache"
 	gs "github.com/MathisVerstrepen/go-module/gosoup"
 	f "github.com/MathisVerstrepen/go-module/webfetch"
 	"github.com/a-h/templ"

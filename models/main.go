@@ -1,7 +1,7 @@
 package models
 
 import (
-	db "diikstra.fr/homeboard/db/database"
+	db "diikstra.fr/homeboard/pkg/db"
 )
 
 type PageData struct {
