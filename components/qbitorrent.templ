@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-templ LetterboxdCard(rd LetterboxdRenderData) {
+templ QbitorrentCard(rd QbitorrentRenderData) {
 	<div id={ rd.Metadata.Position } hx-swap-oob="true" class="h-full w-full p-2">
 		<div class="h-full grid grid-rows-[22%_78%] px-4 py-5 bg-black bg-opacity-10 backdrop-blur rounded-2xl">
 			<div class="flex mb-4 justify-between items-center">
@@ -27,30 +27,8 @@ templ LetterboxdCard(rd LetterboxdRenderData) {
 				</svg>
 			</div>
 			<div class="grid grid-cols-5 h-full items-center relative" id={ fmt.Sprintf("content_%s", rd.Metadata.Position) }>
-				for _, movie := range rd.MovieData {
-					@movieCard(movie)
-				}
+                {fmt.Sprintf("%d", rd.QbitorrentGlobalData.Server_state.Alltime_dl)}
 			</div>
 		</div>
 	</div>
-}
-
-templ movieCard(md LetterboxdMovieData) {
-	<a
-		id={ "movie-card-" + md.Id }
-		class="px-1 grid grid-rows-[90%_10%] h-full"
-		href={ templ.SafeURL("https://letterboxd.com/film/" + md.Slug) }
-		target="_blank"
-	>
-		<div class="rounded-lg overflow-hidden relative">
-			<img src={ md.Poster } alt={ "poster_movie_" + md.Id } loading="lazy"/>
-			<div
-				class="absolute h-6 bg-black bg-opacity-25 backdrop-blur bottom-0 left-0 w-full flex space-x-1 items-center px-1"
-			>
-				<img src={ md.OwnerAvatar } alt={ "avatar_" + md.OwnerAvatar } class="h-5 w-5 rounded-full"/>
-				<p class="text-white text-[10px] font-bold max-w-full overflow-ellipsis whitespace-nowrap">{ md.Owner }</p>
-			</div>
-		</div>
-		<p class="text-sm text-white">{ md.Rating }</p>
-	</a>
 }

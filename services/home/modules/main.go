@@ -12,7 +12,7 @@ import (
 
 var modules = []models.Module{
 	letterboxdModule,
-	// radarrModule,
+	qbitorrentModule,
 }
 
 type ModuleService struct {
