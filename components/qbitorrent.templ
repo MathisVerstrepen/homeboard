@@ -3,6 +3,7 @@ package components
 import (
 	. "diikstra.fr/homeboard/models"
 	"fmt"
+	"diikstra.fr/homeboard/pkg/utils"
 )
 
 templ QbitorrentCard(rd QbitorrentRenderData) {
@@ -11,24 +12,41 @@ templ QbitorrentCard(rd QbitorrentRenderData) {
 			<div class="flex mb-4 justify-between items-center">
 				<div class="flex space-x-3">
 					<img
-						src={ "/assets/images/modules/" + rd.Metadata.Icon + "/icon.png" }
+						src={ "/assets/images/modules/" + rd.Metadata.Icon + "/icon.webp" }
 						alt={ "icon_" + rd.Metadata.Icon }
 						class="h-8 w-8"
+                        loading="lazy"
 					/>
 					<h2 class="font-bold text-lg text-white">{ rd.Metadata.Name }</h2>
 				</div>
-				<svg role="button" class="w-8 h-8 bg-white duration-200 rounded-lg bg-opacity-0 hover:bg-opacity-10 p-1"
-                hx-get={ fmt.Sprintf("/home/modules/edit/%s/%s", rd.Metadata.Name, rd.Metadata.Position)}
-                hx-target={ fmt.Sprintf("#content_%s", rd.Metadata.Position) }
-                hx-swap="outerHTML"
-                id={ fmt.Sprintf("edit_%s", rd.Metadata.Position) }
-                >
+				<svg
+					role="button"
+					class="w-8 h-8 bg-white duration-200 rounded-lg bg-opacity-0 hover:bg-opacity-10 p-1"
+					hx-get={ fmt.Sprintf("/home/modules/edit/%s/%s", rd.Metadata.Name, rd.Metadata.Position) }
+					hx-target={ fmt.Sprintf("#content_%s", rd.Metadata.Position) }
+					hx-swap="outerHTML"
+					id={ fmt.Sprintf("edit_%s", rd.Metadata.Position) }
+				>
 					<use href="#ellipsis-vertical"></use>
 				</svg>
 			</div>
-			<div class="grid grid-cols-5 h-full items-center relative" id={ fmt.Sprintf("content_%s", rd.Metadata.Position) }>
-                {fmt.Sprintf("%d", rd.QbitorrentGlobalData.Server_state.Alltime_dl)}
-			</div>
+            <div id={ fmt.Sprintf("content_%s", rd.Metadata.Position)} class="grid grid-cols-2 grid-rows-2 h-full w-full">
+                @qbitorrentContentBase(rd.QbitorrentGlobalData)
+            </div>
 		</div>
 	</div>
+}
+
+templ qbitorrentContentBase(qgd QbitorrentGlobalData) {
+    @qbitorrentContentBaseBlock("All time download", utils.BytesToReadable(qgd.Server_state.Alltime_dl))
+    @qbitorrentContentBaseBlock("Number of torrents", fmt.Sprintf("%d", len(qgd.Torrents)))
+    @qbitorrentContentBaseBlock("All time upload", utils.BytesToReadable(qgd.Server_state.Alltime_ul))
+    @qbitorrentContentBaseBlock("Free space on disk", utils.BytesToReadable(qgd.Server_state.Free_space_on_disk))
+}
+
+templ qbitorrentContentBaseBlock(title string, value string) {
+    <div class="flex flex-col justify-center items-center bg-c-cyan bg-opacity-10 m-2 rounded-xl">
+        <div class="text-c-cyan text-opacity-50">{ title }</div>
+        <div class="text-c-cyan text-opacity-75 text-xl font-bold">{ value }</div>
+    </div>
 }
