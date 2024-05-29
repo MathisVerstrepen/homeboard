@@ -12,7 +12,6 @@
 *.test.out
 *.test.prof
 *.test.trace
-/pkg/
 /vendor/
 /go.sum
 /tmp
