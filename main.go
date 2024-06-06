@@ -26,7 +26,8 @@ func main() {
 	e.GET("/home/module/:moduleName/:position", handlers.HomeModuleHandler)
 	e.DELETE("/home/module/:moduleName/:position", handlers.HomeModuleDelete)
 	e.POST("/home/modules/:moduleName/:position", handlers.HomeAddModulePositionHandler)
-	e.GET("/home/modules/edit/:moduleName/:position", handlers.HomeGetModuleEdit)
+	e.GET("/home/module/edit/:moduleName/:position", handlers.HomeGetModuleEdit)
+	e.GET("/home/module/edit/:moduleName/:position/variables", handlers.HomeGetModuleEditVariables)
 
 	// ---- Settings Routes ---- //
 	e.GET("/settings", handlers.SettingsHandler)

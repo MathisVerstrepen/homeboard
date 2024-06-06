@@ -11,3 +11,10 @@ CREATE TABLE IF NOT EXISTS home_layout (
     position TEXT PRIMARY KEY,
     module_name TEXT NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS module_variable (
+    id SERIAL PRIMARY KEY,
+    position TEXT NOT NULL,
+    variable_name TEXT NOT NULL,
+    value TEXT NOT NULL
+);

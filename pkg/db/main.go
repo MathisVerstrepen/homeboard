@@ -13,6 +13,8 @@ type Conn struct {
 	Conn *sql.DB
 }
 
+var DbConn *Conn
+
 func Connect() *Conn {
 	user := os.Getenv("POSTGRES_USER")
 	password := os.Getenv("POSTGRES_PASSWORD")
@@ -27,4 +29,8 @@ func Connect() *Conn {
 	return &Conn{
 		Conn: db,
 	}
+}
+
+func Init() {
+	DbConn = Connect()
 }

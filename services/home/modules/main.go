@@ -27,6 +27,17 @@ func (ms ModuleService) GetModulesMetadata() []models.ModuleMetada {
 	return modulesMetadata
 }
 
+func GetModuleMetadata(moduleName string) (models.ModuleMetada, error) {
+	for _, module := range modules {
+		moduleMetadata := module.GetMetadata()
+		if moduleName == moduleMetadata.Name {
+			return moduleMetadata, nil
+		}
+	}
+
+	return models.ModuleMetada{}, errors.New("no module found")
+}
+
 func (ms ModuleService) RenderModule(rdb *redis.Client, name string, position string) (int, templ.Component, error) {
 	for _, module := range modules {
 		if module.GetMetadata().Name == name {

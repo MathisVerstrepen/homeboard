@@ -8,6 +8,8 @@ import (
 
 	comp "diikstra.fr/homeboard/components"
 	"diikstra.fr/homeboard/models"
+	database "diikstra.fr/homeboard/pkg/db"
+	"diikstra.fr/homeboard/services/home/modules"
 )
 
 func HomeHandler(c echo.Context) error {
@@ -105,12 +107,13 @@ func HomeModuleDelete(c echo.Context) error {
 	moduleName := c.Param("moduleName")
 	position := c.Param("position")
 
-	err := dbConn.DeleteHomeLayout(position, moduleName)
+	err := database.DbConn.DeleteHomeLayout(position, moduleName)
 	if err != nil {
+		fmt.Println(err)
 		return err
 	}
 
-	homeLayout.Layout = dbConn.GetHomeLayouts()
+	homeLayout.Layout = database.DbConn.GetHomeLayouts()
 
 	return nil
 }
@@ -119,12 +122,12 @@ func HomeAddModulePositionHandler(c echo.Context) error {
 	moduleName := c.Param("moduleName")
 	position := c.Param("position")
 
-	err := dbConn.SetHomeLayout(position, moduleName)
+	err := database.DbConn.SetHomeLayout(position, moduleName)
 	if err != nil {
 		return err
 	}
 
-	homeLayout.Layout = dbConn.GetHomeLayouts()
+	homeLayout.Layout = database.DbConn.GetHomeLayouts()
 
 	statusCode, component, error := moduleService.RenderModule(cache, moduleName, position)
 	if error != nil {
@@ -139,4 +142,17 @@ func HomeGetModuleEdit(c echo.Context) error {
 	position := c.Param("position")
 
 	return Render(c, http.StatusOK, comp.ModuleEdit(moduleName, position))
+}
+
+func HomeGetModuleEditVariables(c echo.Context) error {
+	moduleName := c.Param("moduleName")
+
+	fmt.Println(moduleName)
+	moduleMetadata, err := modules.GetModuleMetadata(moduleName)
+	fmt.Println(moduleMetadata)
+	if err != nil {
+		return err
+	}
+
+	return Render(c, http.StatusOK, comp.ModuleEditVariables(moduleMetadata))
 }

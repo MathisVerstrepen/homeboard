@@ -23,7 +23,6 @@ var (
 	basepath   = filepath.Dir(b)
 )
 
-var dbConn *database.Conn
 var cache *redis.Client
 
 var homeLayout models.HomeLayoutData
@@ -39,13 +38,13 @@ func Init() {
 		log.Fatal("Error loading .env file")
 	}
 
-	dbConn = database.Connect()
+	database.Init()
 	cache = c.Connect()
 
 	homeLayout = models.HomeLayoutData{
 		NRows:  3,
 		NCols:  3,
-		Layout: dbConn.GetHomeLayouts(),
+		Layout: database.DbConn.GetHomeLayouts(),
 	}
 
 	proxies = f.InitFetchers(filepath.Join(basepath, ".."))
@@ -53,7 +52,7 @@ func Init() {
 		Proxies: proxies,
 	}
 
-	background, err := dbConn.GetSelectedBackground()
+	background, err := database.DbConn.GetSelectedBackground()
 	if err != nil {
 		log.Printf("%v", err)
 		log.Fatal("Fail to fetch selected background")

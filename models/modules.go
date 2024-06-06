@@ -6,12 +6,17 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
+type ModuleService struct {
+	Proxies *[]f.Fetcher
+}
+
 type ModuleMetada struct {
-	Name     string
-	Icon     string
-	Sizes    []string
-	Position string
-	CacheKey string
+	Name      string
+	Icon      string
+	Sizes     []string
+	Position  string
+	CacheKey  string
+	Variables map[string]string // values of keys are defaults values
 }
 
 type Module struct {

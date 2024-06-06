@@ -8,6 +8,7 @@ import (
 
 	comp "diikstra.fr/homeboard/components"
 	"diikstra.fr/homeboard/models"
+	database "diikstra.fr/homeboard/pkg/db"
 )
 
 func SettingsHandler(c echo.Context) error {
@@ -22,12 +23,12 @@ func SettingsHandler(c echo.Context) error {
 
 func SettingsGetBackgrounds(c echo.Context) error {
 	return Render(c, http.StatusOK, comp.BgPopup(models.BackgroundData{
-		Backgrounds: dbConn.GetBackgrounds(),
+		Backgrounds: database.DbConn.GetBackgrounds(),
 	}))
 }
 
 func SettingsPostBackground(c echo.Context) error {
-	bg, err := dbConn.UploadBackground(c)
+	bg, err := database.DbConn.UploadBackground(c)
 	if err != nil {
 		return err
 	}
@@ -44,7 +45,7 @@ func SettingsSetSelectedBackgroundfunc(c echo.Context) error {
 
 	Render(c, http.StatusOK, comp.OobButtonBgSelect(globalPageData.Background))
 
-	background, err := dbConn.SetSelectedBackground(id)
+	background, err := database.DbConn.SetSelectedBackground(id)
 	if err != nil {
 		return c.String(400, "Fail to set new background :"+err.Error())
 	}
@@ -61,7 +62,7 @@ func SettingsDeleteBackground(c echo.Context) error {
 		return nil
 	}
 
-	err = dbConn.DeleteBackground(id)
+	err = database.DbConn.DeleteBackground(id)
 	if err != nil {
 		return nil
 	}
