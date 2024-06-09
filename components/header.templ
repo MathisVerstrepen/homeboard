@@ -42,7 +42,7 @@ templ Header() {
 			</a>
 		</nav>
 		<script>
-        function showBgImage(action) {
+        const showBgImage = (action) => {
             if (action == "show") {
                 document.getElementById('content').style.opacity = 0;
                 document.getElementById('content-wrapper').classList.remove("backdrop-blur-2xl")
@@ -50,9 +50,8 @@ templ Header() {
                 document.getElementById('content').style.opacity = 100;
                 document.getElementById('content-wrapper').classList.add("backdrop-blur-2xl")
             }
-            
         }
-    </script>
+        </script>
 		<div class="absolute top-2 left-2 flex space-x-4">
 			<div
 				role="button"

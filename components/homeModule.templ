@@ -2,7 +2,7 @@ package components
 
 import (
 	. "diikstra.fr/homeboard/models"
-    "fmt"
+	"fmt"
 )
 
 templ ModuleCardHeader(metadata ModuleMetada) {
@@ -37,13 +37,13 @@ templ ModuleEdit(moduleName string, position string) {
 			class="flex flex-col items-center justify-center text-c-red bg-c-red bg-opacity-10 
             rounded-2xl border border-c-red border-opacity-15 hover:bg-opacity-15 duration-200
             h-full w-[90%] px-4"
-            hx-delete={ fmt.Sprintf("/home/module/%s/%s", moduleName, position) }
-            hx-target={ fmt.Sprintf("#%s", position) }
+			hx-delete={ fmt.Sprintf("/home/module/%s/%s", moduleName, position) }
+			hx-target={ fmt.Sprintf("#%s", position) }
 		>
 			<svg class="w-5 h-5 mb-2"><use href="#trash"></use></svg>
 			<p class="text-center">Delete</p>
 		</div>
-        // TODO: Add force refresh
+		// TODO Add force refresh
 		<div
 			role="button"
 			class="flex flex-col items-center justify-center text-c-cyan bg-c-cyan bg-opacity-10 
@@ -53,19 +53,19 @@ templ ModuleEdit(moduleName string, position string) {
 			<svg class="w-5 h-5 mb-2"><use href="#refresh"></use></svg>
 			<p class="text-center">Force Refresh</p>
 		</div>
-        <div
+		<div
 			role="button"
 			class="flex flex-col items-center justify-center text-white bg-white bg-opacity-10 
             rounded-2xl border border-white border-opacity-15 hover:bg-opacity-15 duration-200
             h-full w-[90%] px-4"
-            hx-get={ fmt.Sprintf("/home/module/edit/%s/%s/variables", moduleName, position) }
-            hx-target={ fmt.Sprintf("#infobar_%s", position) }
-            hx-swap="afterend"
+			hx-get={ fmt.Sprintf("/home/module/edit/%s/%s/variables", moduleName, position) }
+			hx-target={ fmt.Sprintf("#infobar_%s", position) }
+			hx-swap="afterend"
 		>
 			<svg class="w-5 h-5 mb-2"><use href="#variable"></use></svg>
 			<p class="text-center">Module Variables</p>
 		</div>
-        <div
+		<div
 			role="button"
 			class="flex flex-col items-center justify-center text-white bg-white bg-opacity-10 
             rounded-2xl border border-white border-opacity-15 hover:bg-opacity-15 duration-200
@@ -75,56 +75,43 @@ templ ModuleEdit(moduleName string, position string) {
 			<p class="text-center">Variants</p>
 		</div>
 	</div>
-
-    @CloseButton(fmt.Sprintf("#content_edit_%s", position), "1", fmt.Sprintf("actions_%s", position), true)
+	@Button(ButtonMeta{
+		Icon:           CloseIcon(),
+		Target:         fmt.Sprintf("#content_edit_%s", position),
+		Id:             fmt.Sprintf("actions_%s", position),
+		Swap:           true,
+		PostAction:     fmt.Sprintf("/home/module/edit/%s/%s/variables", moduleName, position),
+	})
 }
 
 templ ModuleEditVariables(md ModuleMetada) {
-    <div class="h-full w-full flex flex-col p-2 card_content"
-        id={ fmt.Sprintf("content_edit_variable_%s", md.Position) }
-    >
-        <h2 class="text-xl font-bold text-white mb-4">Module Variables</h2>
-        for variable_name, variable_value := range md.Variables {
-            <form hx-post={ fmt.Sprintf("/home/module/%s/%s/variable/%s", md.Name, md.Position, variable_name) }
-            class="grid grid-cols-[25%_75%] items-center">
-                <p class="text-white mb-1">{ variable_name }</p>
-                <input type="text" value={ variable_value } 
-                class="w-2/3 bg-white text-white bg-opacity-5 hover:bg-opacity-10 duration-200 
-                border border-white border-opacity-20 rounded-xl py-1 px-3 mb-1"/>
-            </form>
-        }
-    </div>
-
-    @CloseButton(fmt.Sprintf("#content_edit_variable_%s", md.Position), "2", fmt.Sprintf("actions_%s", md.Position), true)
-}
-
-templ closeButtonContent(target string, level string, id string, swap bool) {
-    <div id={fmt.Sprintf("close_%s_%s", level, id)}
-        class="w-8 h-8 bg-white duration-200 rounded-lg bg-opacity-0 hover:bg-opacity-10"
-        role="button" 
-        hx-get="data:text/html,"
-        hx-target={target}
-        hx-swap="delete"
-    >
-        <svg class="w-8 h-8 p-1">
-            <use href="#x-mark"></use>
-        </svg>
-        if swap {
-            <div hx-trigger={fmt.Sprintf("click from:#close_%s_%s", level, id)}
-                hx-get="data:text/html,"
-                hx-target={fmt.Sprintf("#close_%s_%s", level, id)}
-                hx-swap="delete"
-            ></div>             
-        }   
-    </div>
-}
-
-templ CloseButton(target string, level string, id string, swap bool) {
-    if swap {
-        <div class="w-8 h-8" hx-swap-oob={fmt.Sprintf("afterbegin:#%s", id)}>
-            @closeButtonContent(target, level, id, swap)
-        </div>
-    } else {
-        @closeButtonContent(target, level, id, swap)
-    }
+	<div
+		class="h-full w-full flex flex-col p-2 card_content"
+		id={ fmt.Sprintf("content_edit_variable_%s", md.Position) }
+	>
+		<h2 class="text-xl font-bold text-white mb-4">Module Variables</h2>
+		<form
+			id={ fmt.Sprintf("form_%s", md.Position) }
+			class="grid grid-cols-[25%_75%] items-center"
+		>
+			for variable_name, variable_value := range md.Variables {
+				<p class="text-white mb-1">{ variable_name }</p>
+				<input
+					name={ variable_name }
+					type="text"
+					value={ variable_value }
+					class="w-2/3 bg-white text-white bg-opacity-5 hover:bg-opacity-10 duration-200
+                border border-white border-opacity-20 rounded-xl py-1 px-3 mb-1"
+				/>
+			}
+		</form>
+	</div>
+	@Button(ButtonMeta{
+		Icon:           CloseIcon(),
+		Target:         fmt.Sprintf("#content_edit_variable_%s", md.Position),
+		Id:             fmt.Sprintf("actions_%s", md.Position),
+		Swap:           true,
+		PostAction:     fmt.Sprintf("/home/module/edit/%s/%s/variables", md.Name, md.Position),
+		Include:        fmt.Sprintf("#form_%s input", md.Position),
+	})
 }

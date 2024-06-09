@@ -2,6 +2,8 @@ package utils
 
 import (
 	"fmt"
+	"math/rand"
+	"time"
 )
 
 func BytesToReadable(bytes int) string {
@@ -24,4 +26,17 @@ func BytesToReadable(bytes int) string {
 	default:
 		return fmt.Sprintf("%dB", bytes)
 	}
+}
+
+func GenerateRandomString(length int) string {
+	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	source := rand.NewSource(time.Now().UnixNano())
+	rng := rand.New(source)
+
+	b := make([]byte, length)
+	for i := range b {
+		b[i] = charset[rng.Intn(len(charset))]
+	}
+
+	return string(b)
 }

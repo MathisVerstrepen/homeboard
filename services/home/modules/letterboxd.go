@@ -30,26 +30,37 @@ var letterboxdModule = models.Module{
 	GetMetadata: func() models.ModuleMetada {
 		return letterboxdModuleMetada
 	},
-	RenderView: func(rdb *redis.Client, name string, position string, fetcher f.Fetcher) (int, templ.Component, error) {
-		var moviesData []models.LetterboxdMovieData
-
-		err := c.GetCachedKey(rdb, letterboxdModuleMetada.CacheKey, &moviesData)
-		if err != nil {
-			moviesData = GetFriendsRecentMovies(fetcher)
-			err := c.SetCachedKey(rdb, letterboxdModuleMetada.CacheKey, moviesData)
-			if err != nil {
-				log.Printf("fail to set key %s in cache", letterboxdModuleMetada.CacheKey)
-				log.Printf("%v", err)
-			}
-		}
-
-		letterboxdModuleMetada.Position = position
-
-		return http.StatusOK, comp.LetterboxdCard(models.LetterboxdRenderData{
-			MovieData: moviesData,
-			Metadata:  letterboxdModuleMetada,
-		}), nil
+	RenderView: func(rdb *redis.Client, name string, position string, fetcher f.Fetcher, useCache bool) (int, templ.Component, error) {
+		return http.StatusOK, comp.LetterboxdCard(
+			renderLetterboxdDataConstructor(rdb, position, fetcher, useCache),
+		), nil
 	},
+	RenderViewContent: func(rdb *redis.Client, name string, position string, fetcher f.Fetcher, useCache bool) (int, templ.Component, error) {
+		return http.StatusOK, comp.LetterboxdCardContent(
+			renderLetterboxdDataConstructor(rdb, position, fetcher, useCache),
+		), nil
+	},
+}
+
+func renderLetterboxdDataConstructor(rdb *redis.Client, position string, fetcher f.Fetcher, useCache bool) models.LetterboxdRenderData {
+	var moviesData []models.LetterboxdMovieData
+
+	err := c.GetCachedKey(rdb, letterboxdModuleMetada.CacheKey, &moviesData)
+	if err != nil || !useCache {
+		moviesData = GetFriendsRecentMovies(fetcher)
+		err := c.SetCachedKey(rdb, letterboxdModuleMetada.CacheKey, moviesData)
+		if err != nil {
+			log.Printf("fail to set key %s in cache", letterboxdModuleMetada.CacheKey)
+			log.Printf("%v", err)
+		}
+	}
+
+	letterboxdModuleMetada.Position = position
+
+	return models.LetterboxdRenderData{
+		MovieData: moviesData,
+		Metadata:  letterboxdModuleMetada,
+	}
 }
 
 func GetFriendsRecentMovies(fetcher f.Fetcher) []models.LetterboxdMovieData {

@@ -13,8 +13,9 @@ CREATE TABLE IF NOT EXISTS home_layout (
 );
 
 CREATE TABLE IF NOT EXISTS module_variable (
-    id SERIAL PRIMARY KEY,
     position TEXT NOT NULL,
     variable_name TEXT NOT NULL,
-    value TEXT NOT NULL
+    value TEXT NOT NULL,
+
+    CONSTRAINT module_variable_pk PRIMARY KEY (position, variable_name)
 );

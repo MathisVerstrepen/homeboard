@@ -28,6 +28,7 @@ func main() {
 	e.POST("/home/modules/:moduleName/:position", handlers.HomeAddModulePositionHandler)
 	e.GET("/home/module/edit/:moduleName/:position", handlers.HomeGetModuleEdit)
 	e.GET("/home/module/edit/:moduleName/:position/variables", handlers.HomeGetModuleEditVariables)
+	e.POST("/home/module/edit/:moduleName/:position/variables", handlers.HomePostModuleEditVariables)
 
 	// ---- Settings Routes ---- //
 	e.GET("/settings", handlers.SettingsHandler)

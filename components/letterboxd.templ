@@ -9,14 +9,18 @@ templ LetterboxdCard(rd LetterboxdRenderData) {
 	<div id={ rd.Metadata.Position } hx-swap-oob="true" class="h-full w-full p-2">
 		<div class="h-full grid grid-rows-[22%_78%] px-4 py-5 bg-black bg-opacity-10 backdrop-blur rounded-2xl overflow-hidden">
 			@ModuleCardHeader(rd.Metadata)
-			<div class="grid grid-cols-5 h-full items-center relative card_content" 
-                id={ fmt.Sprintf("content_%s", rd.Metadata.Position) }>
-				for _, movie := range rd.MovieData {
-					@movieCard(movie)
-				}
-			</div>
+			@LetterboxdCardContent(rd)
 		</div>
 	</div>
+}
+
+templ LetterboxdCardContent(rd LetterboxdRenderData) {
+    <div class="grid grid-cols-5 h-full items-center relative card_content" hx-swap-oob="true" 
+        id={ fmt.Sprintf("content_%s", rd.Metadata.Position) }>
+        for _, movie := range rd.MovieData {
+            @movieCard(movie)
+        }
+    </div>
 }
 
 templ movieCard(md LetterboxdMovieData) {

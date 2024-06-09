@@ -38,10 +38,20 @@ func GetModuleMetadata(moduleName string) (models.ModuleMetada, error) {
 	return models.ModuleMetada{}, errors.New("no module found")
 }
 
-func (ms ModuleService) RenderModule(rdb *redis.Client, name string, position string) (int, templ.Component, error) {
+func (ms ModuleService) RenderModule(rdb *redis.Client, name string, position string, useCache bool) (int, templ.Component, error) {
 	for _, module := range modules {
 		if module.GetMetadata().Name == name {
-			return module.RenderView(rdb, name, position, (*ms.Proxies)[0])
+			return module.RenderView(rdb, name, position, (*ms.Proxies)[0], useCache)
+		}
+	}
+
+	return 0, nil, errors.New("no module named " + name + " found")
+}
+
+func (ms ModuleService) RenderModuleContent(rdb *redis.Client, name string, position string, useCache bool) (int, templ.Component, error) {
+	for _, module := range modules {
+		if module.GetMetadata().Name == name {
+			return module.RenderViewContent(rdb, name, position, (*ms.Proxies)[0], useCache)
 		}
 	}
 

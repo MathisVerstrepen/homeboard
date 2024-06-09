@@ -1,0 +1,43 @@
+package components
+
+import (
+    . "diikstra.fr/homeboard/models"
+    "diikstra.fr/homeboard/pkg/utils"
+    "fmt"
+)
+
+templ CloseIcon() {
+    <svg class="w-8 h-8 p-1">
+        <use href="#x-mark"></use>
+    </svg>
+}
+
+templ ButtonContent(bm ButtonMeta, id string) {
+    <div id={id}
+        class="w-8 h-8 bg-white duration-200 rounded-lg bg-opacity-0 hover:bg-opacity-10"
+        role="button"
+        hx-post={ func() string {if (bm.PostAction != "") { return bm.PostAction } else { return "data:text/html," }}() }
+        hx-target={bm.Target}
+        hx-swap="delete"
+        hx-include={bm.Include}
+    >
+        @bm.Icon
+        if bm.Swap {
+            <div hx-trigger={fmt.Sprintf("click from:#%s", id)}
+                hx-get="data:text/html,"
+                hx-target={fmt.Sprintf("#%s", id)}
+                hx-swap="delete"
+            ></div>
+        }
+    </div>
+}
+
+templ Button(bm ButtonMeta) {
+    if bm.Swap {
+        <div class="w-8 h-8" hx-swap-oob={fmt.Sprintf("afterbegin:#%s", bm.Id)}>
+            @ButtonContent(bm, utils.GenerateRandomString(8))
+        </div>
+    } else {
+        @ButtonContent(bm, utils.GenerateRandomString(8))
+    }
+}

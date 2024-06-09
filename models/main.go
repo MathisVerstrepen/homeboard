@@ -2,6 +2,7 @@ package models
 
 import (
 	db "diikstra.fr/homeboard/pkg/db"
+	"github.com/a-h/templ"
 )
 
 type PageData struct {
@@ -24,4 +25,13 @@ type HomeLayoutData struct {
 type HomeAddPopup struct {
 	Position string
 	Modules  []ModuleMetada
+}
+
+type ButtonMeta struct {
+	Icon       templ.Component
+	Target     string
+	Id         string
+	Swap       bool
+	PostAction string
+	Include    string
 }

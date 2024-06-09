@@ -2,7 +2,9 @@ package handlers
 
 import (
 	"fmt"
+	"io"
 	"net/http"
+	"net/url"
 
 	"github.com/labstack/echo/v4"
 
@@ -71,7 +73,7 @@ func HomeModuleHandler(c echo.Context) error {
 	modules := moduleService.GetModulesMetadata()
 	for _, module := range modules {
 		if moduleName == module.Name {
-			statusCode, component, error := moduleService.RenderModule(cache, module.Name, position)
+			statusCode, component, error := moduleService.RenderModule(cache, module.Name, position, true)
 
 			if error != nil {
 				return error
@@ -89,7 +91,7 @@ func HomeModulesHandler(c echo.Context) error {
 	for _, modulePosition := range *homeLayout.Layout {
 		for _, module := range modules {
 			if modulePosition.ModuleName == module.Name {
-				statusCode, component, error := moduleService.RenderModule(cache, module.Name, modulePosition.Position)
+				statusCode, component, error := moduleService.RenderModule(cache, module.Name, modulePosition.Position, true)
 
 				if error != nil {
 					Render(c, http.StatusBadRequest, nil)
@@ -129,7 +131,7 @@ func HomeAddModulePositionHandler(c echo.Context) error {
 
 	homeLayout.Layout = database.DbConn.GetHomeLayouts()
 
-	statusCode, component, error := moduleService.RenderModule(cache, moduleName, position)
+	statusCode, component, error := moduleService.RenderModule(cache, moduleName, position, true)
 	if error != nil {
 		return Render(c, http.StatusBadRequest, nil)
 	} else {
@@ -147,12 +149,58 @@ func HomeGetModuleEdit(c echo.Context) error {
 func HomeGetModuleEditVariables(c echo.Context) error {
 	moduleName := c.Param("moduleName")
 
-	fmt.Println(moduleName)
 	moduleMetadata, err := modules.GetModuleMetadata(moduleName)
-	fmt.Println(moduleMetadata)
 	if err != nil {
 		return err
 	}
 
 	return Render(c, http.StatusOK, comp.ModuleEditVariables(moduleMetadata))
+}
+
+func HomePostModuleEditVariables(c echo.Context) error {
+	moduleName := c.Param("moduleName")
+	position := c.Param("position")
+
+	body, err := io.ReadAll(c.Request().Body)
+	if err != nil {
+		return err
+	}
+
+	variablesUrlValues, err := url.ParseQuery(string(body))
+	if err != nil {
+		return err
+	}
+
+	// url.Values if a map of string to list of string so we need to cast to a standard map string to string
+	variables := make(map[string]string)
+	for variableName, variableValue := range variablesUrlValues {
+		variables[variableName] = variableValue[0]
+	}
+
+	oldVariables := make(map[string]string)
+	database.DbConn.GetModuleVariables(position, &oldVariables)
+
+	err = database.DbConn.SetModuleVariables(position, &variables)
+	if err != nil {
+		return err
+	}
+
+	variablesChanged := false
+	for variableName, variableValue := range variables {
+		if variableValue != oldVariables[variableName] {
+			variablesChanged = true
+			break
+		}
+	}
+
+	if variablesChanged {
+		statusCode, component, error := moduleService.RenderModuleContent(cache, moduleName, position, false)
+		if error != nil {
+			return Render(c, http.StatusBadRequest, nil)
+		} else {
+			return Render(c, statusCode, component)
+		}
+	}
+
+	return nil
 }

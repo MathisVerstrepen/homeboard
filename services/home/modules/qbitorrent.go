@@ -32,28 +32,38 @@ var qbitorrentModule = models.Module{
 	GetMetadata: func() models.ModuleMetada {
 		return qbitorrentModuleMetada
 	},
-	RenderView: func(rdb *redis.Client, name string, position string, fetcher f.Fetcher) (int, templ.Component, error) {
-		var qbittorentData models.QbitorrentGlobalData
-
-		qbitorrentModuleMetada.Position = position
-		database.DbConn.GetModuleVariables(position, &qbitorrentModuleMetada.Variables)
-
-		// TODO change cacheKey construction so cache is invalidate when variables change
-		err := c.GetCachedKey(rdb, qbitorrentModuleMetada.CacheKey, &qbittorentData)
-		if err != nil {
-			qbittorentData = GetQbittorentGlobalData(fetcher, qbitorrentModuleMetada.Variables["Host"], qbitorrentModuleMetada.Variables["Port"])
-			err := c.SetCachedKey(rdb, qbitorrentModuleMetada.CacheKey, qbittorentData)
-			if err != nil {
-				log.Printf("fail to set key %s in cache", qbitorrentModuleMetada.CacheKey)
-				log.Printf("%v", err)
-			}
-		}
-
-		return http.StatusOK, comp.QbitorrentCard(models.QbitorrentRenderData{
-			QbitorrentGlobalData: qbittorentData,
-			Metadata:             qbitorrentModuleMetada,
-		}), nil
+	RenderView: func(rdb *redis.Client, name string, position string, fetcher f.Fetcher, useCache bool) (int, templ.Component, error) {
+		return http.StatusOK, comp.QbitorrentCard(
+			renderQbittorrentDataConstructor(rdb, position, fetcher, useCache),
+		), nil
 	},
+	RenderViewContent: func(rdb *redis.Client, name string, position string, fetcher f.Fetcher, useCache bool) (int, templ.Component, error) {
+		return http.StatusOK, comp.QbitorrentCardContent(
+			renderQbittorrentDataConstructor(rdb, position, fetcher, useCache),
+		), nil
+	},
+}
+
+func renderQbittorrentDataConstructor(rdb *redis.Client, position string, fetcher f.Fetcher, useCache bool) models.QbitorrentRenderData {
+	var qbittorentData models.QbitorrentGlobalData
+
+	qbitorrentModuleMetada.Position = position
+	database.DbConn.GetModuleVariables(position, &qbitorrentModuleMetada.Variables)
+
+	err := c.GetCachedKey(rdb, qbitorrentModuleMetada.CacheKey, &qbittorentData)
+	if err != nil || !useCache {
+		qbittorentData = GetQbittorentGlobalData(fetcher, qbitorrentModuleMetada.Variables["Host"], qbitorrentModuleMetada.Variables["Port"])
+		err := c.SetCachedKey(rdb, qbitorrentModuleMetada.CacheKey, qbittorentData)
+		if err != nil {
+			log.Printf("fail to set key %s in cache", qbitorrentModuleMetada.CacheKey)
+			log.Printf("%v", err)
+		}
+	}
+
+	return models.QbitorrentRenderData{
+		QbitorrentGlobalData: qbittorentData,
+		Metadata:             qbitorrentModuleMetada,
+	}
 }
 
 func GetQbittorentGlobalData(fetcher f.Fetcher, host string, port string) models.QbitorrentGlobalData {

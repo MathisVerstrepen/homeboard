@@ -20,6 +20,7 @@ type ModuleMetada struct {
 }
 
 type Module struct {
-	GetMetadata func() ModuleMetada
-	RenderView  func(*redis.Client, string, string, f.Fetcher) (int, templ.Component, error)
+	GetMetadata       func() ModuleMetada
+	RenderView        func(*redis.Client, string, string, f.Fetcher, bool) (int, templ.Component, error)
+	RenderViewContent func(*redis.Client, string, string, f.Fetcher, bool) (int, templ.Component, error)
 }
