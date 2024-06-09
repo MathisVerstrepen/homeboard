@@ -19,11 +19,9 @@ import (
 )
 
 var letterboxdModuleMetada = models.ModuleMetada{
-	Name:     "Letterboxd",
-	Icon:     "letterboxd",
-	Sizes:    []string{"1x1"},
-	Position: "",
-	CacheKey: "letterboxd_recent_friends_movies",
+	Name:  "Letterboxd",
+	Icon:  "letterboxd",
+	Sizes: []string{"1x1"},
 }
 
 var letterboxdModule = models.Module{
@@ -32,34 +30,35 @@ var letterboxdModule = models.Module{
 	},
 	RenderView: func(rdb *redis.Client, name string, position string, fetcher f.Fetcher, useCache bool) (int, templ.Component, error) {
 		return http.StatusOK, comp.LetterboxdCard(
-			renderLetterboxdDataConstructor(rdb, position, fetcher, useCache),
+			renderLetterboxdDataConstructor(rdb, name, position, fetcher, useCache),
 		), nil
 	},
 	RenderViewContent: func(rdb *redis.Client, name string, position string, fetcher f.Fetcher, useCache bool) (int, templ.Component, error) {
 		return http.StatusOK, comp.LetterboxdCardContent(
-			renderLetterboxdDataConstructor(rdb, position, fetcher, useCache),
+			renderLetterboxdDataConstructor(rdb, name, position, fetcher, useCache),
 		), nil
 	},
 }
 
-func renderLetterboxdDataConstructor(rdb *redis.Client, position string, fetcher f.Fetcher, useCache bool) models.LetterboxdRenderData {
+func renderLetterboxdDataConstructor(rdb *redis.Client, name string, position string, fetcher f.Fetcher, useCache bool) models.LetterboxdRenderData {
 	var moviesData []models.LetterboxdMovieData
 
-	err := c.GetCachedKey(rdb, letterboxdModuleMetada.CacheKey, &moviesData)
+	moduleData := GetModuleData(name, position)
+
+	err := c.GetCachedKey(rdb, moduleData.CacheKey, &moviesData)
 	if err != nil || !useCache {
 		moviesData = GetFriendsRecentMovies(fetcher)
-		err := c.SetCachedKey(rdb, letterboxdModuleMetada.CacheKey, moviesData)
+		err := c.SetCachedKey(rdb, moduleData.CacheKey, moviesData)
 		if err != nil {
-			log.Printf("fail to set key %s in cache", letterboxdModuleMetada.CacheKey)
+			log.Printf("fail to set key %s in cache", moduleData.CacheKey)
 			log.Printf("%v", err)
 		}
 	}
 
-	letterboxdModuleMetada.Position = position
-
 	return models.LetterboxdRenderData{
 		MovieData: moviesData,
 		Metadata:  letterboxdModuleMetada,
+		Data:      moduleData,
 	}
 }
 

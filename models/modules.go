@@ -11,12 +11,17 @@ type ModuleService struct {
 }
 
 type ModuleMetada struct {
+	Name             string
+	Icon             string
+	Sizes            []string
+	DefaultVariables map[string]string
+}
+
+type ModuleData struct {
 	Name      string
-	Icon      string
-	Sizes     []string
 	Position  string
 	CacheKey  string
-	Variables map[string]string // values of keys are defaults values
+	Variables map[string]string
 }
 
 type Module struct {

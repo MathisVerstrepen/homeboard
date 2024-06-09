@@ -11,6 +11,7 @@ import (
 	comp "diikstra.fr/homeboard/components"
 	"diikstra.fr/homeboard/models"
 	database "diikstra.fr/homeboard/pkg/db"
+	"diikstra.fr/homeboard/pkg/static"
 	"diikstra.fr/homeboard/services/home/modules"
 )
 
@@ -19,25 +20,25 @@ func HomeHandler(c echo.Context) error {
 		Title:      "Home",
 		Page:       "home",
 		Background: globalPageData.Background,
-		HomeLayout: homeLayout,
+		HomeLayout: static.HomeLayout,
 	}
 
-	return Render(c, http.StatusOK, comp.Root(comp.Home(homeLayout), newPageData))
+	return Render(c, http.StatusOK, comp.Root(comp.Home(static.HomeLayout), newPageData))
 }
 
 func HomeGetEdit(c echo.Context) error {
 	Render(c, http.StatusOK, comp.Header_buttons_out())
 
-	nCols := homeLayout.NCols
-	nRows := homeLayout.NRows
+	nCols := static.HomeLayout.NCols
+	nRows := static.HomeLayout.NRows
 	ids := make([]string, 0)
 	for row := range nRows {
 		for col := range nCols {
 			position := fmt.Sprintf("card_%d_%d", row+1, col+1)
 
 			present := false
-			for _, layout := range *homeLayout.Layout {
-				if layout.Position == position {
+			for _, moduleData := range static.HomeLayout.LayoutData {
+				if moduleData.Position == position {
 					present = true
 					break
 				}
@@ -54,7 +55,7 @@ func HomeGetEdit(c echo.Context) error {
 
 func HomePostEdit(c echo.Context) error {
 	Render(c, http.StatusOK, comp.Header_buttons())
-	return Render(c, http.StatusOK, comp.HomeLayout(homeLayout))
+	return Render(c, http.StatusOK, comp.HomeLayout(static.HomeLayout))
 }
 
 func HomeGetAddList(c echo.Context) error {
@@ -99,10 +100,10 @@ func HomeModuleHandlerForceRefresh(c echo.Context) error {
 
 func HomeModulesHandler(c echo.Context) error {
 	modules := moduleService.GetModulesMetadata()
-	for _, modulePosition := range *homeLayout.Layout {
+	for _, moduleData := range static.HomeLayout.LayoutData {
 		for _, module := range modules {
-			if modulePosition.ModuleName == module.Name {
-				statusCode, component, error := moduleService.RenderModule(cache, module.Name, modulePosition.Position, true)
+			if moduleData.Name == module.Name {
+				statusCode, component, error := moduleService.RenderModule(cache, module.Name, moduleData.Position, true)
 
 				if error != nil {
 					Render(c, http.StatusBadRequest, nil)
@@ -122,11 +123,18 @@ func HomeModuleDelete(c echo.Context) error {
 
 	err := database.DbConn.DeleteHomeLayout(position, moduleName)
 	if err != nil {
-		fmt.Println(err)
 		return err
 	}
 
-	homeLayout.Layout = database.DbConn.GetHomeLayouts()
+	newLayoutData := make([]models.ModuleData, len(static.HomeLayout.LayoutData)-1)
+	for i, moduleData := range static.HomeLayout.LayoutData {
+		if moduleData.Position == position {
+			copy(newLayoutData[i:len(static.HomeLayout.LayoutData)-1], static.HomeLayout.LayoutData[i+1:len(static.HomeLayout.LayoutData)])
+			break
+		}
+		newLayoutData[i] = moduleData
+	}
+	static.HomeLayout.LayoutData = newLayoutData
 
 	return nil
 }
@@ -140,14 +148,23 @@ func HomeAddModulePositionHandler(c echo.Context) error {
 		return err
 	}
 
-	homeLayout.Layout = database.DbConn.GetHomeLayouts()
+	moduleMetadata, err := modules.GetModuleMetadata(moduleName)
+	if err != nil {
+		return err
+	}
+
+	static.HomeLayout.LayoutData = append(static.HomeLayout.LayoutData, models.ModuleData{
+		Name:      moduleName,
+		Position:  position,
+		CacheKey:  fmt.Sprintf("module_%s_%s", moduleName, position),
+		Variables: moduleMetadata.DefaultVariables,
+	})
 
 	statusCode, component, error := moduleService.RenderModule(cache, moduleName, position, true)
 	if error != nil {
 		return Render(c, http.StatusBadRequest, nil)
-	} else {
-		return Render(c, statusCode, component)
 	}
+	return Render(c, statusCode, component)
 }
 
 func HomeGetModuleEdit(c echo.Context) error {
@@ -159,14 +176,15 @@ func HomeGetModuleEdit(c echo.Context) error {
 
 func HomeGetModuleEditVariables(c echo.Context) error {
 	moduleName := c.Param("moduleName")
+	position := c.Param("position")
 
 	moduleMetadata, err := modules.GetModuleMetadata(moduleName)
-	fmt.Println(moduleMetadata)
+	moduleData := modules.GetModuleData(moduleName, position)
 	if err != nil {
 		return err
 	}
 
-	return Render(c, http.StatusOK, comp.ModuleEditVariables(moduleMetadata))
+	return Render(c, http.StatusOK, comp.ModuleEditVariables(moduleMetadata, moduleData))
 }
 
 func HomePostModuleEditVariables(c echo.Context) error {
@@ -206,6 +224,7 @@ func HomePostModuleEditVariables(c echo.Context) error {
 	}
 
 	if variablesChanged {
+		static.SetVariables(moduleName, position, variables)
 		statusCode, component, error := moduleService.RenderModuleContent(cache, moduleName, position, false)
 		if error != nil {
 			return Render(c, http.StatusBadRequest, nil)

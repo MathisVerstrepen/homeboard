@@ -5,8 +5,8 @@ import (
 	"fmt"
 )
 
-templ ModuleCardHeader(metadata ModuleMetada) {
-	<div class="flex mb-4 justify-between items-center" id={ fmt.Sprintf("infobar_%s", metadata.Position) }>
+templ ModuleCardHeader(metadata ModuleMetada, data ModuleData) {
+	<div class="flex mb-4 justify-between items-center" id={ fmt.Sprintf("infobar_%s", data.Position) }>
 		<div class="flex space-x-3">
 			<img
 				src={ "/assets/images/modules/" + metadata.Icon + "/icon.webp" }
@@ -16,12 +16,12 @@ templ ModuleCardHeader(metadata ModuleMetada) {
 			/>
 			<h2 class="font-bold text-lg text-white">{ metadata.Name }</h2>
 		</div>
-		<div class="h-8 w-8 overflow-hidden" id={ fmt.Sprintf("actions_%s", metadata.Position) }>
+		<div class="h-8 w-8 overflow-hidden" id={ fmt.Sprintf("actions_%s", data.Position) }>
 			<svg
 				role="button"
 				class="w-8 h-8 bg-white duration-200 rounded-lg bg-opacity-0 hover:bg-opacity-10 p-1"
-				hx-get={ fmt.Sprintf("/home/module/edit/%s/%s", metadata.Name, metadata.Position) }
-				hx-target={ fmt.Sprintf("#infobar_%s", metadata.Position) }
+				hx-get={ fmt.Sprintf("/home/module/edit/%s/%s", metadata.Name, data.Position) }
+				hx-target={ fmt.Sprintf("#infobar_%s", data.Position) }
 				hx-swap="afterend"
 			>
 				<use href="#ellipsis-vertical"></use>
@@ -85,17 +85,17 @@ templ ModuleEdit(moduleName string, position string) {
 	})
 }
 
-templ ModuleEditVariables(md ModuleMetada) {
+templ ModuleEditVariables(md ModuleMetada, data ModuleData) {
 	<div
 		class="h-full w-full flex flex-col p-2 card_content"
-		id={ fmt.Sprintf("content_edit_variable_%s", md.Position) }
+		id={ fmt.Sprintf("content_edit_variable_%s", data.Position) }
 	>
 		<h2 class="text-xl font-bold text-white mb-4">Module Variables</h2>
 		<form
-			id={ fmt.Sprintf("form_%s", md.Position) }
+			id={ fmt.Sprintf("form_%s", data.Position) }
 			class="grid grid-cols-[25%_75%] items-center"
 		>
-			for variable_name, variable_value := range md.Variables {
+			for variable_name, variable_value := range data.Variables {
 				<p class="text-white mb-1">{ variable_name }</p>
 				<input
 					name={ variable_name }
@@ -109,10 +109,10 @@ templ ModuleEditVariables(md ModuleMetada) {
 	</div>
 	@Button(ButtonMeta{
 		Icon:           CloseIcon(),
-		Target:         fmt.Sprintf("#content_edit_variable_%s", md.Position),
-		Id:             fmt.Sprintf("actions_%s", md.Position),
+		Target:         fmt.Sprintf("#content_edit_variable_%s", data.Position),
+		Id:             fmt.Sprintf("actions_%s", data.Position),
 		Swap:           true,
-		PostAction:     fmt.Sprintf("/home/module/edit/%s/%s/variables", md.Name, md.Position),
-		Include:        fmt.Sprintf("#form_%s input", md.Position),
+		PostAction:     fmt.Sprintf("/home/module/edit/%s/%s/variables", md.Name, data.Position),
+		Include:        fmt.Sprintf("#form_%s input", data.Position),
 	})
 }

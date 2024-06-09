@@ -12,4 +12,5 @@ type LetterboxdMovieData struct {
 type LetterboxdRenderData struct {
 	MovieData []LetterboxdMovieData
 	Metadata  ModuleMetada
+	Data      ModuleData
 }

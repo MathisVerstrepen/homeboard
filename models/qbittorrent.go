@@ -1,6 +1,6 @@
 package models
 
-type QbitorrentServerState struct {
+type QbittorrentServerState struct {
 	Alltime_dl             int
 	Alltime_ul             int
 	Average_time_queue     int
@@ -28,7 +28,7 @@ type QbitorrentServerState struct {
 	Write_cache_overload   int
 }
 
-type QbitorrentTorrentData struct {
+type QbittorrentTorrentData struct {
 	Added_on                    int
 	Amount_left                 int
 	Auto_tmm                    bool
@@ -83,13 +83,14 @@ type QbitorrentTorrentData struct {
 
 type Tracker []string
 
-type QbitorrentGlobalData struct {
-	Server_state QbitorrentServerState
-	Torrents     map[string]QbitorrentTorrentData
+type QbittorrentGlobalData struct {
+	Server_state QbittorrentServerState
+	Torrents     map[string]QbittorrentTorrentData
 	Trackers     map[string]Tracker
 }
 
-type QbitorrentRenderData struct {
-	QbitorrentGlobalData QbitorrentGlobalData
-	Metadata             ModuleMetada
+type QbittorrentRenderData struct {
+	QbittorrentGlobalData QbittorrentGlobalData
+	Metadata              ModuleMetada
+	Data                  ModuleData
 }

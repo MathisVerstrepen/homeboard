@@ -15,6 +15,7 @@ import (
 	"diikstra.fr/homeboard/models"
 	c "diikstra.fr/homeboard/pkg/cache"
 	database "diikstra.fr/homeboard/pkg/db"
+	"diikstra.fr/homeboard/pkg/static"
 	mod "diikstra.fr/homeboard/services/home/modules"
 )
 
@@ -25,7 +26,6 @@ var (
 
 var cache *redis.Client
 
-var homeLayout models.HomeLayoutData
 var proxies *[]f.Fetcher
 var moduleService mod.ModuleService
 var globalPageData models.PageData
@@ -41,10 +41,32 @@ func Init() {
 	database.Init()
 	cache = c.Connect()
 
-	homeLayout = models.HomeLayoutData{
-		NRows:  3,
-		NCols:  3,
-		Layout: database.DbConn.GetHomeLayouts(),
+	modulesPosition := database.DbConn.GetHomeLayouts()
+
+	static.HomeLayout = models.HomeLayoutData{
+		NRows:      3,
+		NCols:      3,
+		LayoutData: make([]models.ModuleData, len(*modulesPosition)),
+	}
+
+	for i, modulePosition := range *modulesPosition {
+		moduleMetadata, err := mod.GetModuleMetadata(modulePosition.ModuleName)
+		if err != nil {
+			log.Fatal("mismatch between saved modules name in db and static module names")
+		}
+
+		moduleVariables := make(map[string]string)
+		for key, value := range moduleMetadata.DefaultVariables {
+			moduleVariables[key] = value
+		}
+		database.DbConn.GetModuleVariables(modulePosition.Position, &moduleVariables)
+
+		static.HomeLayout.LayoutData[i] = models.ModuleData{
+			Name:      modulePosition.ModuleName,
+			Position:  modulePosition.Position,
+			CacheKey:  fmt.Sprintf("module_%s_%s", modulePosition.ModuleName, modulePosition.Position),
+			Variables: moduleVariables,
+		}
 	}
 
 	proxies = f.InitFetchers(filepath.Join(basepath, ".."))

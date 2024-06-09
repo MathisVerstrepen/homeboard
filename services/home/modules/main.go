@@ -8,11 +8,12 @@ import (
 	"github.com/redis/go-redis/v9"
 
 	"diikstra.fr/homeboard/models"
+	"diikstra.fr/homeboard/pkg/static"
 )
 
 var modules = []models.Module{
 	letterboxdModule,
-	qbitorrentModule,
+	qbittorrentModule,
 }
 
 type ModuleService struct {
@@ -36,6 +37,15 @@ func GetModuleMetadata(moduleName string) (models.ModuleMetada, error) {
 	}
 
 	return models.ModuleMetada{}, errors.New("no module found")
+}
+
+func GetModuleData(name string, position string) models.ModuleData {
+	for _, moduleData := range static.HomeLayout.LayoutData {
+		if moduleData.Name == name && moduleData.Position == position {
+			return moduleData
+		}
+	}
+	return models.ModuleData{}
 }
 
 func (ms ModuleService) RenderModule(rdb *redis.Client, name string, position string, useCache bool) (int, templ.Component, error) {

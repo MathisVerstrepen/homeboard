@@ -17,9 +17,9 @@ type BackgroundData struct {
 }
 
 type HomeLayoutData struct {
-	NRows  int
-	NCols  int
-	Layout *[]db.ModulePosition
+	NRows      int
+	NCols      int
+	LayoutData []ModuleData
 }
 
 type HomeAddPopup struct {

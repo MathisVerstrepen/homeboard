@@ -6,29 +6,29 @@ import (
 	"diikstra.fr/homeboard/pkg/utils"
 )
 
-templ QbitorrentCard(rd QbitorrentRenderData) {
-	<div id={ rd.Metadata.Position } hx-swap-oob="true" class="h-full w-full p-2">
+templ QbittorrentCard(rd QbittorrentRenderData) {
+	<div id={ rd.Data.Position } hx-swap-oob="true" class="h-full w-full p-2">
 		<div class="h-full grid grid-rows-[22%_78%] px-4 py-5 bg-black bg-opacity-10 backdrop-blur rounded-2xl overflow-hidden">
-			@ModuleCardHeader(rd.Metadata)
-            @QbitorrentCardContent(rd)
+			@ModuleCardHeader(rd.Metadata, rd.Data)
+            @QbittorrentCardContent(rd)
 		</div>
 	</div>
 }
 
-templ QbitorrentCardContent(rd QbitorrentRenderData) {
-    <div id={ fmt.Sprintf("content_%s", rd.Metadata.Position) } class="grid grid-cols-2 grid-rows-2 h-full w-full card_content" hx-swap-oob="true">
-        @qbitorrentContentBase(rd.QbitorrentGlobalData)
+templ QbittorrentCardContent(rd QbittorrentRenderData) {
+    <div id={ fmt.Sprintf("content_%s", rd.Data.Position) } class="grid grid-cols-2 grid-rows-2 h-full w-full card_content" hx-swap-oob="true">
+        @qbittorrentContentBase(rd.QbittorrentGlobalData)
     </div>
 }
 
-templ qbitorrentContentBase(qgd QbitorrentGlobalData) {
-	@qbitorrentContentBaseBlock("All time download", utils.BytesToReadable(qgd.Server_state.Alltime_dl))
-	@qbitorrentContentBaseBlock("Number of torrents", fmt.Sprintf("%d", len(qgd.Torrents)))
-	@qbitorrentContentBaseBlock("All time upload", utils.BytesToReadable(qgd.Server_state.Alltime_ul))
-	@qbitorrentContentBaseBlock("Free space on disk", utils.BytesToReadable(qgd.Server_state.Free_space_on_disk))
+templ qbittorrentContentBase(qgd QbittorrentGlobalData) {
+	@qbittorrentContentBaseBlock("All time download", utils.BytesToReadable(qgd.Server_state.Alltime_dl))
+	@qbittorrentContentBaseBlock("Number of torrents", fmt.Sprintf("%d", len(qgd.Torrents)))
+	@qbittorrentContentBaseBlock("All time upload", utils.BytesToReadable(qgd.Server_state.Alltime_ul))
+	@qbittorrentContentBaseBlock("Free space on disk", utils.BytesToReadable(qgd.Server_state.Free_space_on_disk))
 }
 
-templ qbitorrentContentBaseBlock(title string, value string) {
+templ qbittorrentContentBaseBlock(title string, value string) {
 	<div class="flex flex-col justify-center items-center bg-c-cyan bg-opacity-10 m-2 rounded-xl">
 		<div class="text-c-cyan text-opacity-50">{ title }</div>
 		<div class="text-c-cyan text-opacity-75 text-xl font-bold">{ value }</div>
