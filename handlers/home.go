@@ -114,6 +114,8 @@ func HomeModulesHandler(c echo.Context) error {
 		}
 	}
 
+	Render(c, http.StatusOK, comp.Alert("success", "Modules loaded", "Home modules have loaded succesfully !"))
+
 	return nil
 }
 

@@ -1,0 +1,101 @@
+package components
+
+import (
+	. "diikstra.fr/homeboard/models"
+	"diikstra.fr/homeboard/pkg/utils"
+	"fmt"
+)
+
+templ AlertContainer() {
+    // TODO animation is not triggered
+	<style>
+    #alerts-container .htmx-added {
+        opacity: 0;
+        transition: opacity 1s ease-out;
+    }
+    </style>
+	<div
+		class="absolute bottom-4 left-1/2 -translate-x-1/2 w-[35rem] flex space-y-4 flex-col h-fit"
+		id="alerts-container"
+	></div>
+}
+
+templ Alert(alertType string, title string, message string) {
+	<div hx-swap-oob="afterbegin:#alerts-container">
+		switch alertType {
+			case "info":
+				@AlertInfo(title, message, utils.GenerateRandomString(8))
+			case "success":
+				@AlertSuccess(title, message, utils.GenerateRandomString(8))
+			case "warning":
+				@AlertWarning(title, message, utils.GenerateRandomString(8))
+			case "error":
+				@AlertError(title, message, utils.GenerateRandomString(8))
+		}
+	</div>
+}
+
+templ AlertIconWrapper(iconName string) {
+	<svg class="w-8 h-8 p-1 shrink-0 smooth">
+		<use href={ fmt.Sprintf("#%s", iconName) }></use>
+	</svg>
+}
+
+templ AlertInfo(title string, message string, id string) {
+	<div
+		class="bg-blue-500 bg-opacity-25 text-blue-300 px-4 py-3 rounded-2xl flex space-x-4 justify-between items-center"
+		role="alert"
+		id={ id }
+	>
+		@AlertContent(title, message, id, AlertIconWrapper("information-circle"))
+	</div>
+}
+
+templ AlertSuccess(title string, message string, id string) {
+	<div
+		class="bg-green-500 bg-opacity-25 text-green-300 px-4 py-3 rounded-2xl flex space-x-4 justify-between items-center"
+		role="alert"
+		id={ id }
+	>
+		@AlertContent(title, message, id, AlertIconWrapper("check-circle"))
+	</div>
+}
+
+templ AlertWarning(title string, message string, id string) {
+	<div
+		class="bg-yellow-500 bg-opacity-25 text-yellow-300 px-4 py-3 rounded-2xl flex space-x-4 justify-between items-center"
+		role="alert"
+		id={ id }
+	>
+		@AlertContent(title, message, id, AlertIconWrapper("shield-exclamation"))
+	</div>
+}
+
+templ AlertError(title string, message string, id string) {
+	<div
+		class="bg-red-500 bg-opacity-25 text-red-300 px-4 py-3 rounded-2xl flex space-x-4 justify-between items-center"
+		role="alert"
+		id={ id }
+	>
+		@AlertContent(title, message, id, AlertIconWrapper("exclamation-circle"))
+	</div>
+}
+
+templ AlertContent(title string, message string, id string, icon templ.Component) {
+	@icon
+	<div
+		class="flex flex-col w-full"
+		hx-trigger="revealed delay:300s"
+		hx-get="data:text/html,"
+		hx-target={ fmt.Sprintf("#%s", id) }
+		hx-swap="delete"
+	>
+		<strong class="font-bold">{ title }</strong>
+		<span class="">{ message }</span>
+	</div>
+	@Button(ButtonMeta{
+		Icon:   CloseIcon(),
+		Target: fmt.Sprintf("#%s", id),
+		Id:     fmt.Sprintf("close-alert-%s", id),
+	})
+}
