@@ -19,19 +19,28 @@ func main() {
 
 	// ---- Home Routes ---- //
 	e.GET("/", handlers.HomeHandler)
+
+	// Add Module PopUp
 	e.GET("/home/edit", handlers.HomeGetEdit)
 	e.POST("/home/edit", handlers.HomePostEdit)
 	e.GET("/home/add/list/:position", handlers.HomeGetAddList)
+
+	// Home Layout
 	e.GET("/home/modules", handlers.HomeModulesHandler)
 	e.GET("/home/module/:moduleName/:position", handlers.HomeModuleHandler)
-	e.DELETE("/home/module/:moduleName/:position", handlers.HomeModuleDelete)
+	e.GET("/home/module/refresh/:moduleName/:position", handlers.HomeModuleHandlerForceRefresh)
 	e.POST("/home/modules/:moduleName/:position", handlers.HomeAddModulePositionHandler)
+	e.DELETE("/home/module/:moduleName/:position", handlers.HomeModuleDelete)
+
+	// Module Settings
 	e.GET("/home/module/edit/:moduleName/:position", handlers.HomeGetModuleEdit)
 	e.GET("/home/module/edit/:moduleName/:position/variables", handlers.HomeGetModuleEditVariables)
 	e.POST("/home/module/edit/:moduleName/:position/variables", handlers.HomePostModuleEditVariables)
 
 	// ---- Settings Routes ---- //
 	e.GET("/settings", handlers.SettingsHandler)
+
+	// Background
 	e.GET("/settings/backgrounds", handlers.SettingsGetBackgrounds)
 	e.POST("/settings/backgrounds", handlers.SettingsPostBackground)
 	e.POST("/settings/backgrounds/selected/:id", handlers.SettingsSetSelectedBackgroundfunc)

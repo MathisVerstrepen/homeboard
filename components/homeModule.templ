@@ -49,6 +49,7 @@ templ ModuleEdit(moduleName string, position string) {
 			class="flex flex-col items-center justify-center text-c-cyan bg-c-cyan bg-opacity-10 
             rounded-2xl border border-c-cyan border-opacity-15 hover:bg-opacity-15 duration-200
             h-full w-[90%] px-4"
+            hx-get={ fmt.Sprintf("/home/module/refresh/%s/%s", moduleName, position) }
 		>
 			<svg class="w-5 h-5 mb-2"><use href="#refresh"></use></svg>
 			<p class="text-center">Force Refresh</p>

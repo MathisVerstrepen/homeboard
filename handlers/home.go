@@ -66,14 +66,11 @@ func HomeGetAddList(c echo.Context) error {
 	return Render(c, http.StatusOK, comp.AddBlockPopup(addPopupData))
 }
 
-func HomeModuleHandler(c echo.Context) error {
-	moduleName := c.Param("moduleName")
-	position := c.Param("position")
-
+func handleModuleRender(c echo.Context, moduleName string, position string, useCache bool) error {
 	modules := moduleService.GetModulesMetadata()
 	for _, module := range modules {
 		if moduleName == module.Name {
-			statusCode, component, error := moduleService.RenderModule(cache, module.Name, position, true)
+			statusCode, component, error := moduleService.RenderModule(cache, module.Name, position, useCache)
 
 			if error != nil {
 				return error
@@ -84,6 +81,20 @@ func HomeModuleHandler(c echo.Context) error {
 		}
 	}
 	return nil
+}
+
+func HomeModuleHandler(c echo.Context) error {
+	moduleName := c.Param("moduleName")
+	position := c.Param("position")
+
+	return handleModuleRender(c, moduleName, position, true)
+}
+
+func HomeModuleHandlerForceRefresh(c echo.Context) error {
+	moduleName := c.Param("moduleName")
+	position := c.Param("position")
+
+	return handleModuleRender(c, moduleName, position, false)
 }
 
 func HomeModulesHandler(c echo.Context) error {
@@ -150,6 +161,7 @@ func HomeGetModuleEditVariables(c echo.Context) error {
 	moduleName := c.Param("moduleName")
 
 	moduleMetadata, err := modules.GetModuleMetadata(moduleName)
+	fmt.Println(moduleMetadata)
 	if err != nil {
 		return err
 	}
