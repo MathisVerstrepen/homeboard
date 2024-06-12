@@ -114,8 +114,6 @@ func HomeModulesHandler(c echo.Context) error {
 		}
 	}
 
-	Render(c, http.StatusOK, comp.Alert("success", "Modules loaded", "Home modules have loaded succesfully !"))
-
 	return nil
 }
 
@@ -138,7 +136,8 @@ func HomeModuleDelete(c echo.Context) error {
 	}
 	static.HomeLayout.LayoutData = newLayoutData
 
-	return nil
+	return Render(c, http.StatusOK,
+		comp.Alert("success", "Suppression effectuée", fmt.Sprintf("Suppresion du module %s effectuée avec succès !", moduleName)))
 }
 
 func HomeAddModulePositionHandler(c echo.Context) error {
@@ -231,6 +230,8 @@ func HomePostModuleEditVariables(c echo.Context) error {
 		if error != nil {
 			return Render(c, http.StatusBadRequest, nil)
 		} else {
+			Render(c, http.StatusOK,
+				comp.Alert("success", "Enregistrement effectué", "Enregistrement des variables effectué avec succès !"))
 			return Render(c, statusCode, component)
 		}
 	}

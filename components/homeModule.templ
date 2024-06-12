@@ -81,7 +81,6 @@ templ ModuleEdit(moduleName string, position string) {
 		Target:         fmt.Sprintf("#content_edit_%s", position),
 		Id:             fmt.Sprintf("actions_%s", position),
 		Swap:           true,
-		PostAction:     fmt.Sprintf("/home/module/edit/%s/%s/variables", moduleName, position),
 	})
 }
 
