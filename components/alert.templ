@@ -7,11 +7,17 @@ import (
 )
 
 templ AlertContainer() {
-    // TODO animation is not triggered
 	<style>
-    #alerts-container .htmx-added {
+    #alerts-container .alert {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    #alerts-container .htmx-added, #alerts-container .htmx-swapping {
         opacity: 0;
-        transition: opacity 1s ease-out;
+        transform: translateY(10px);
+    }
+    #alerts-container .htmx-swapping, #alerts-container .alert {
+        transition: opacity 0.3s, transform 0.3s;
     }
     </style>
 	<div
@@ -43,7 +49,7 @@ templ AlertIconWrapper(iconName string) {
 
 templ AlertInfo(title string, message string, id string) {
 	<div
-		class="bg-blue-500 bg-opacity-25 text-blue-300 px-4 py-3 rounded-2xl flex space-x-4 justify-between items-center"
+		class="bg-blue-500 bg-opacity-25 text-blue-300 px-4 py-3 rounded-2xl flex space-x-4 justify-between items-center alert"
 		role="alert"
 		id={ id }
 	>
@@ -85,10 +91,10 @@ templ AlertContent(title string, message string, id string, icon templ.Component
 	@icon
 	<div
 		class="flex flex-col w-full"
-		hx-trigger="revealed delay:300s"
+		hx-trigger="revealed delay:5s"
 		hx-get="data:text/html,"
 		hx-target={ fmt.Sprintf("#%s", id) }
-		hx-swap="delete"
+		hx-swap="delete swap:0.3s"
 	>
 		<strong class="font-bold">{ title }</strong>
 		<span class="">{ message }</span>
@@ -97,5 +103,6 @@ templ AlertContent(title string, message string, id string, icon templ.Component
 		Icon:   CloseIcon("currentColor"),
 		Target: fmt.Sprintf("#%s", id),
 		Id:     fmt.Sprintf("close-alert-%s", id),
+        Delay: "0.3s",
 	})
 }

@@ -13,6 +13,13 @@ css svg_stroke_color(color string) {
     padding: 0.25rem;
 }
 
+func format_delay(delay string) string {
+    if delay != "" {
+        delay = fmt.Sprintf(" swap:%s", delay)
+    }
+    return fmt.Sprintf("delete%s", delay)
+}
+
 templ CloseIcon(color string) {
     <svg class={ svg_stroke_color(color) }>
         <use href="#x-mark"></use>
@@ -25,7 +32,7 @@ templ ButtonContent(bm ButtonMeta, id string) {
         role="button"
         hx-post={ func() string {if (bm.PostAction != "") { return bm.PostAction } else { return "data:text/html," }}() }
         hx-target={bm.Target}
-        hx-swap="delete"
+        hx-swap={ format_delay(bm.Delay) }
         hx-include={bm.Include}
     >
         @bm.Icon

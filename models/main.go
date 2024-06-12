@@ -34,4 +34,5 @@ type ButtonMeta struct {
 	Swap       bool
 	PostAction string
 	Include    string
+	Delay      string
 }
