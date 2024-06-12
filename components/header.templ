@@ -70,7 +70,7 @@ templ Header() {
 templ Header_buttons() {
 	<div
 		role="button"
-		class="flex items-center text-white bg-white bg-opacity-10 py-2 px-3 rounded-2xl border border-white border-opacity-15 
+		class="flex items-center justify-center text-white bg-white bg-opacity-10 rounded-2xl border border-white border-opacity-15 
     w-12 h-12 hover:bg-opacity-15 duration-200"
 		id="button_home_edit"
 		hx-get="/home/edit"
@@ -78,7 +78,7 @@ templ Header_buttons() {
 		hx-swap-oob="true"
 		hx-swap="none"
 	>
-		<svg>
+		<svg class="w-8 h-8 p-1">
 			<use href="#plus"></use>
 		</svg>
 	</div>
@@ -87,15 +87,13 @@ templ Header_buttons() {
 templ Header_buttons_out() {
 	<div
 		role="button"
-		class="flex items-center text-c-red bg-c-red bg-opacity-10 py-2 px-3 rounded-2xl border border-c-red border-opacity-15 
+		class="flex items-center justify-center text-c-red bg-c-red bg-opacity-10 rounded-2xl border border-c-red border-opacity-15 
 w-12 h-12 hover:bg-opacity-15 duration-200"
 		id="button_home_edit"
 		hx-post="/home/edit"
 		hx-target="#layout"
 		hx-swap-oob="true"
 	>
-		<svg>
-			<use href="#x-mark"></use>
-		</svg>
+		@CloseIcon("currentColor")
 	</div>
 }

@@ -6,8 +6,15 @@ import (
     "fmt"
 )
 
-templ CloseIcon() {
-    <svg class="w-8 h-8 p-1">
+css svg_stroke_color(color string) {
+    color: { color };
+    width: 2rem;
+    height: 2rem;
+    padding: 0.25rem;
+}
+
+templ CloseIcon(color string) {
+    <svg class={ svg_stroke_color(color) }>
         <use href="#x-mark"></use>
     </svg>
 }

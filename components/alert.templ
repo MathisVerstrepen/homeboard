@@ -94,7 +94,7 @@ templ AlertContent(title string, message string, id string, icon templ.Component
 		<span class="">{ message }</span>
 	</div>
 	@Button(ButtonMeta{
-		Icon:   CloseIcon(),
+		Icon:   CloseIcon("currentColor"),
 		Target: fmt.Sprintf("#%s", id),
 		Id:     fmt.Sprintf("close-alert-%s", id),
 	})

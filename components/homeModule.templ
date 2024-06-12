@@ -77,7 +77,7 @@ templ ModuleEdit(moduleName string, position string) {
 		</div>
 	</div>
 	@Button(ButtonMeta{
-		Icon:           CloseIcon(),
+		Icon:           CloseIcon("white"),
 		Target:         fmt.Sprintf("#content_edit_%s", position),
 		Id:             fmt.Sprintf("actions_%s", position),
 		Swap:           true,
@@ -108,7 +108,7 @@ templ ModuleEditVariables(md ModuleMetada, data ModuleData) {
 		</form>
 	</div>
 	@Button(ButtonMeta{
-		Icon:           CloseIcon(),
+		Icon:           CloseIcon("white"),
 		Target:         fmt.Sprintf("#content_edit_variable_%s", data.Position),
 		Id:             fmt.Sprintf("actions_%s", data.Position),
 		Swap:           true,
