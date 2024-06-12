@@ -40,18 +40,23 @@ func SettingsSetSelectedBackgroundfunc(c echo.Context) error {
 	idBg := c.Param("id")
 	id, err := strconv.Atoi(idBg)
 	if err != nil {
-		return c.String(400, "Invalid id")
+		ThrowClientError(c, err)
+		return nil
 	}
 
-	Render(c, http.StatusOK, comp.OobButtonBgSelect(globalPageData.Background))
+	Render(c, http.StatusOK, comp.OobButtonBgSelect(globalPageData.Background.Id))
+	Render(c, http.StatusOK, comp.OobDeleteBgItem(globalPageData.Background.Id))
 
 	background, err := database.DbConn.SetSelectedBackground(id)
 	if err != nil {
-		return c.String(400, "Fail to set new background :"+err.Error())
+		ThrowClientError(c, err)
+		return nil
 	}
 	globalPageData.Background = background
 
-	Render(c, http.StatusOK, comp.OobButtonBgSelected(background))
+	Render(c, http.StatusOK, comp.OobButtonBgSelected(background.Id))
+	Render(c, http.StatusOK, comp.OobDisabledDeleteBgItem(background.Id))
+
 	return Render(c, http.StatusOK, comp.Background(globalPageData))
 }
 

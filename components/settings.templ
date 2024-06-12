@@ -70,19 +70,16 @@ templ BgItem(bg db.Background) {
 				if bg.Selected {
 					@buttonBgSelected()
 				} else {
-					@buttonBgSelect(bg)
+					@buttonBgSelect(bg.Id)
 				}
 			</div>
-			<div
-				role="button"
-				class="flex items-center text-c-red bg-c-red bg-opacity-10 py-2 px-3 rounded-2xl border border-c-red border-opacity-15 
-        w-fit mb-8 hover:bg-opacity-15 duration-200"
-				hx-delete={ fmt.Sprintf("/settings/backgrounds/%d", bg.Id) }
-				hx-target={ fmt.Sprintf("#item-%d", bg.Id) }
-				hx-swap="delete"
-			>
-				<svg class="w-5 h-5"><use href="#trash"></use></svg>
-			</div>
+            <div id={ fmt.Sprintf("delete-bg-%d", bg.Id) }>
+                if bg.Selected {
+                    @disabledDeleteBgItem()
+                } else {
+                    @deleteBgItem(bg.Id)
+                }
+            </div>
 		</div>
 	</div>
 }
@@ -90,20 +87,20 @@ templ BgItem(bg db.Background) {
 templ buttonBgSelected() {
 	<div
 		role="button"
-		class="flex items-center space-x-1 text-c-cyan bg-c-cyan bg-opacity-10 px-8 py-2 rounded-2xl border border-c-cyan border-opacity-15 
-w-fit mb-8 hover:bg-opacity-15 duration-200"
+		class="flex items-center justify-center space-x-1 text-c-cyan bg-c-cyan bg-opacity-10 w-28 h-10 rounded-2xl 
+        border border-c-cyan border-opacity-15 mb-8 hover:bg-opacity-15 duration-200"
 	>
 		<svg class="w-5 h-5"><use href="#check"></use></svg>
 		<span>Set</span>
 	</div>
 }
 
-templ buttonBgSelect(bg db.Background) {
+templ buttonBgSelect(Id int) {
 	<div
 		role="button"
-		class="flex items-center space-x-1 text-white bg-white bg-opacity-10 px-8 py-2 rounded-2xl border border-white border-opacity-15 
-w-fit mb-8 hover:bg-opacity-15 duration-200"
-		hx-post={ fmt.Sprintf("/settings/backgrounds/selected/%d", bg.Id) }
+		class="flex items-center justify-center space-x-1 text-white bg-white bg-opacity-10 w-28 h-10 rounded-2xl 
+        border border-white border-opacity-15 mb-8 hover:bg-opacity-15 duration-200"
+		hx-post={ fmt.Sprintf("/settings/backgrounds/selected/%d", Id) }
 		hx-target="#background"
 	>
 		<svg class="w-6 h-6"><use href="#arrow-path-rounded-square"></use></svg>
@@ -111,16 +108,51 @@ w-fit mb-8 hover:bg-opacity-15 duration-200"
 	</div>
 }
 
-templ OobButtonBgSelect(bg db.Background) {
-	<div id={ fmt.Sprintf("button-bg-%d", bg.Id) } hx-swap-oob="outerHTML">
-		@buttonBgSelect(bg)
+templ OobButtonBgSelect(Id int) {
+	<div id={ fmt.Sprintf("button-bg-%d", Id) } hx-swap-oob="outerHTML">
+		@buttonBgSelect(Id)
 	</div>
 }
 
-templ OobButtonBgSelected(bg db.Background) {
-	<div id={ fmt.Sprintf("button-bg-%d", bg.Id) } hx-swap-oob="outerHTML">
+templ OobButtonBgSelected(Id int) {
+	<div id={ fmt.Sprintf("button-bg-%d", Id) } hx-swap-oob="outerHTML">
 		@buttonBgSelected()
 	</div>
+}
+
+templ deleteBgItem(Id int) {
+    <div
+        role="button"
+        class="flex items-center justify-center text-c-red bg-c-red bg-opacity-10 h-10 w-10 rounded-2xl 
+        border border-c-red border-opacity-15 mb-8 hover:bg-opacity-15 duration-200"
+        hx-delete={ fmt.Sprintf("/settings/backgrounds/%d", Id) }
+        hx-target={ fmt.Sprintf("#item-%d", Id) }
+        hx-swap="delete"
+    >
+        <svg class="w-5 h-5"><use href="#trash"></use></svg>
+    </div>
+}
+
+templ disabledDeleteBgItem() {
+    <div
+        role="button"
+        class="flex items-center justify-center text-c-red bg-c-red bg-opacity-10 h-10 w-10 rounded-2xl 
+        border border-c-red border-opacity-15 mb-8 hover:bg-opacity-15 duration-200 hover:cursor-not-allowed opacity-50"
+    >
+        <svg class="w-5 h-5"><use href="#trash"></use></svg>
+    </div>
+}
+
+templ OobDeleteBgItem(Id int) {
+    <div id={ fmt.Sprintf("delete-bg-%d", Id) } hx-swap-oob="outerHTML">
+        @deleteBgItem(Id)
+    </div>
+}
+
+templ OobDisabledDeleteBgItem(Id int) {
+    <div id={ fmt.Sprintf("delete-bg-%d", Id) } hx-swap-oob="outerHTML">
+        @disabledDeleteBgItem()
+    </div>
 }
 
 templ HeaderButtons() {
