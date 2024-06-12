@@ -121,7 +121,12 @@ func HomeModuleDelete(c echo.Context) error {
 	moduleName := c.Param("moduleName")
 	position := c.Param("position")
 
-	err := database.DbConn.DeleteHomeLayout(position, moduleName)
+	err := database.DbConn.DeleteModuleVariables(position, moduleName)
+	if err != nil {
+		return err
+	}
+
+	err = database.DbConn.DeleteHomeLayout(position, moduleName)
 	if err != nil {
 		return err
 	}
@@ -150,6 +155,11 @@ func HomeAddModulePositionHandler(c echo.Context) error {
 	}
 
 	moduleMetadata, err := modules.GetModuleMetadata(moduleName)
+	if err != nil {
+		return err
+	}
+
+	err = database.DbConn.SetModuleVariables(position, &moduleMetadata.DefaultVariables)
 	if err != nil {
 		return err
 	}

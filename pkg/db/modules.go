@@ -46,3 +46,8 @@ func (c *Conn) SetModuleVariables(position string, variables *map[string]string)
 	err := c.Conn.QueryRow(strings.Join(insert, "; ")).Err()
 	return err
 }
+
+func (c *Conn) DeleteModuleVariables(position string, moduleName string) error {
+	err := c.Conn.QueryRow(`DELETE FROM module_variable WHERE position = $1;`, position).Err()
+	return err
+}
