@@ -3,7 +3,7 @@ module diikstra.fr/homeboard
 go 1.22.1
 
 require (
-	github.com/MathisVerstrepen/go-module v0.0.0-20240702155858-734c7f4f88f5
+	github.com/MathisVerstrepen/go-module v0.0.0-20240705101144-26a6c6882ce5
 	github.com/a-h/templ v0.2.697
 	github.com/chromedp/cdproto v0.0.0-20240202021202-6d0b6a386732
 	github.com/chromedp/chromedp v0.9.5
