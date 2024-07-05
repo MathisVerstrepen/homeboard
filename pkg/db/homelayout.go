@@ -12,6 +12,7 @@ func (c *Conn) GetHomeLayouts() *[]ModulePosition {
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer rows.Close()
 
 	rows.Scan()
 

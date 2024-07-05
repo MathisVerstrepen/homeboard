@@ -15,6 +15,7 @@ func (c *Conn) GetModuleVariables(position string, variables *map[string]string)
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer rows.Close()
 
 	rows.Scan()
 

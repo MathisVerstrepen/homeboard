@@ -35,3 +35,7 @@ output.css
 
 /data
 proxies.txt
+assets/images/linkhub/*
+assets/models/*
+
+.directory

@@ -1,0 +1,151 @@
+package components
+
+import (
+    database "diikstra.fr/homeboard/pkg/db"
+	. "diikstra.fr/homeboard/models"
+	"fmt"
+)
+
+templ Linkhub(linkHubLinks []database.LinkHubLink) {
+	<div class="flex flex-col px-8">
+		@linkInput()
+		@linkTable(linkHubLinks)
+	</div>
+}
+
+templ linkInput() {
+	<div class="flex h-full w-full justify-center p-8">
+		<form hx-post="/linkhub/site" hx-swap="none">
+			<input
+				type="text"
+				name="url"
+				placeholder="Enter a link"
+				required
+				class="bg-white bg-opacity-10 rounded-xl py-2 px-4 text-white font-bold w-[40rem]
+                focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-25"
+			/>
+			<button
+				class="bg-white bg-opacity-10 hover:bg-opacity-20 duration-200 rounded-xl py-2 px-6 text-white font-bold"
+				type="submit"
+			>Submit</button>
+		</form>
+	</div>
+}
+
+templ linkTable(links []database.LinkHubLink) {
+	<table class="w-full border-spacing-0 border-collapse">
+		<thead>
+			<tr class="text-white">
+				<th class="text-left">Name</th>
+				<th class="text-right">Icon</th>
+				<th class="text-right">Nsfw</th>
+				<th class="text-right">Starred</th>
+				<th class="text-right">Created at</th>
+			</tr>
+		</thead>
+		<tbody>
+			for _, link := range links {
+				<tr class="h-12 hover:bg-white hover:bg-opacity-5 duration-200 text-white">
+					<td>
+						<a
+							href={ templ.SafeURL(fmt.Sprintf("/linkhub/%d", link.Id)) }
+							class="h-12 w-full flex items-center"
+						>
+							<div>{ link.Name }</div>
+						</a>
+					</td>
+					<td class="text-right">
+						if link.Icon == "" {
+							No icon
+						} else {
+							Icon found
+						}
+					</td>
+					<td class="text-right">
+						if link.Is_nsfw {
+							Yes
+						} else {
+							No
+						}
+					</td>
+					<td class="text-right">
+						if link.Is_starred {
+							Yes
+						} else {
+							No
+						}
+					</td>
+					<td class="text-right">
+						{ link.Created_at }
+					</td>
+				</tr>
+			}
+		</tbody>
+	</table>
+}
+
+templ LinkhubId(linkHubLink database.LinkHubLink, linkHubImages []database.LinkHubImage) {
+    <style>
+        .unsafe-parent:hover .unsafe-parent-warn {
+            visibility: hidden;
+        }
+    </style>
+
+    <div class="relative h-full">
+        <p>{ linkHubLink.Name }</p>
+        <div class="flex flex-wrap gap-4 shrink-0 px-8 items-center">
+            for _, image := range linkHubImages {
+                if image.Is_nsfw {
+                    @renderNsfwImg(image)
+                } else {
+                    @renderSafeImg(image)
+                }
+            }
+        </div>
+        <div id="image-detail-popup" class="absolute top-0 left-0 h-full w-full pointer-events-none"></div>
+    </div>
+}
+
+templ renderSafeImg(image database.LinkHubImage) {
+	<div class="h-20 w-40 flex items-center justify-center" 
+        hx-get={ fmt.Sprintf("/linkhub/image/%s", image.Image_id) } hx-swap="none"
+        >
+		<img src={ fmt.Sprintf("/assets/images/linkhub/%s.%s", image.Image_id, image.Ext) } 
+            alt={ image.Image_id } class="max-h-full max-w-full" loading="lazy"/>
+	</div>
+}
+
+templ renderNsfwImg(image database.LinkHubImage) {
+	<div class="h-20 w-40 relative duration-200 unsafe-parent">
+		<div
+			class="bg-black bg-opacity-50 text-white text-2xl font-bold max-w-full absolute h-20 w-40 backdrop-blur
+        flex items-center justify-center rounded
+        unsafe-parent-warn"
+		>
+			NSFW
+		</div>
+		@renderSafeImg(image)
+	</div>
+}
+
+templ LinkhubImageDetail(imageMeta database.LinkHubImage, imageTags []database.LinkhubTag) {
+    <div hx-swap-oob="innerHTML" id="image-detail-popup">
+        <div class="bg-black bg-opacity-50 pointer-events-auto h-full w-full">
+            @Button(ButtonMeta{
+                Icon:   CloseIcon("white"),
+                Target: "#image-detail-popup > div",
+                Id:     "close-linkhub-image",
+            })
+            <img src={ fmt.Sprintf("/assets/images/linkhub/%s.%s", imageMeta.Image_id, imageMeta.Ext) } 
+                alt={ imageMeta.Image_id } class="h-2/3 max-w-full" loading="lazy"/>
+            <div class="flex flex-wrap gap-4">
+                for _, tag := range imageTags {
+                    <div class="bg-white bg-opacity-10 rounded-xl p-2 text-white font-bold">
+                        { tag.Tag }
+                    </div>
+                }
+            </div>
+        >
+        </div>
+    </div>
+}

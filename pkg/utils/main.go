@@ -2,7 +2,9 @@ package utils
 
 import (
 	"fmt"
+	"io"
 	"math/rand"
+	"net/url"
 	"time"
 )
 
@@ -39,4 +41,13 @@ func GenerateRandomString(length int) string {
 	}
 
 	return string(b)
+}
+
+func DecodePostBody(reqBody io.ReadCloser) (url.Values, error) {
+	body, err := io.ReadAll(reqBody)
+	if err != nil {
+		return nil, err
+	}
+
+	return url.ParseQuery(string(body))
 }

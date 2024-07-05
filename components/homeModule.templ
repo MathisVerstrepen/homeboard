@@ -5,6 +5,17 @@ import (
 	"fmt"
 )
 
+func getInputType(variable_name string) string {
+    switch variable_name {
+    case "Password":
+        return "password"
+    case "Port":
+        return "number"
+    default:
+        return "text"
+    }
+}
+
 templ ModuleCardHeader(metadata ModuleMetada, data ModuleData) {
 	<div class="flex mb-4 justify-between items-center" id={ fmt.Sprintf("infobar_%s", data.Position) }>
 		<div class="flex space-x-3">
@@ -43,7 +54,6 @@ templ ModuleEdit(moduleName string, position string) {
 			<svg class="w-5 h-5 mb-2"><use href="#trash"></use></svg>
 			<p class="text-center">Delete</p>
 		</div>
-		// TODO Add force refresh
 		<div
 			role="button"
 			class="flex flex-col items-center justify-center text-c-cyan bg-c-cyan bg-opacity-10 
@@ -92,13 +102,13 @@ templ ModuleEditVariables(md ModuleMetada, data ModuleData) {
 		<h2 class="text-xl font-bold text-white mb-4">Module Variables</h2>
 		<form
 			id={ fmt.Sprintf("form_%s", data.Position) }
-			class="grid grid-cols-[25%_75%] items-center"
+			class="grid grid-cols-[25%_75%] items-center overflow-y-scroll"
 		>
 			for variable_name, variable_value := range data.Variables {
 				<p class="text-white mb-1">{ variable_name }</p>
 				<input
 					name={ variable_name }
-					type="text"
+					type={ getInputType(variable_name) }
 					value={ variable_value }
 					class="w-2/3 bg-white text-white bg-opacity-5 hover:bg-opacity-10 duration-200
                 border border-white border-opacity-20 rounded-xl py-1 px-3 mb-1"

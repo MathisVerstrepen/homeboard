@@ -63,7 +63,7 @@ func renderLetterboxdDataConstructor(rdb *redis.Client, name string, position st
 }
 
 func GetFriendsRecentMovies(fetcher f.Fetcher) []models.LetterboxdMovieData {
-	body := fetcher.FetchData(f.FetcherParams{
+	body, _ := fetcher.FetchData(f.FetcherParams{
 		Method: "GET",
 		Url:    "https://letterboxd.com/",
 		Body:   nil,
@@ -77,7 +77,7 @@ func GetFriendsRecentMovies(fetcher f.Fetcher) []models.LetterboxdMovieData {
 
 	parsedBody, _ := html.Parse(strings.NewReader(string(body)))
 
-	groupNode := gs.GetNodeByClass(parsedBody, &gs.HtmlSelector{
+	groupNode := gs.GetNodeBySelector(parsedBody, &gs.HtmlSelector{
 		Id:         "recent-from-friends",
 		Tag:        "section",
 		ClassNames: "",
@@ -89,7 +89,7 @@ func GetFriendsRecentMovies(fetcher f.Fetcher) []models.LetterboxdMovieData {
 		return []models.LetterboxdMovieData{}
 	}
 
-	friendsMovies := gs.GetNodeByClass(groupNode[0], &gs.HtmlSelector{
+	friendsMovies := gs.GetNodeBySelector(groupNode[0], &gs.HtmlSelector{
 		Tag:        "li",
 		ClassNames: "poster-container viewing-poster-container",
 		Multiple:   true,
@@ -103,14 +103,14 @@ func GetFriendsRecentMovies(fetcher f.Fetcher) []models.LetterboxdMovieData {
 
 		posterUrl := getPosterURL(fetcher, filmSlug)
 
-		ownerImgNode := gs.GetNodeByClass(movieNode, &gs.HtmlSelector{
+		ownerImgNode := gs.GetNodeBySelector(movieNode, &gs.HtmlSelector{
 			Tag:        "a",
 			ClassNames: "avatar -a16",
 			Multiple:   false,
 		})
 		ownerPfpUrl := gs.GetAttribute(ownerImgNode[0].FirstChild.NextSibling, "src")
 
-		ratingNode := gs.GetNodeByClass(movieNode, &gs.HtmlSelector{
+		ratingNode := gs.GetNodeBySelector(movieNode, &gs.HtmlSelector{
 			Tag:        "span",
 			ClassNames: "rating",
 			Multiple:   false,
@@ -134,7 +134,7 @@ func GetFriendsRecentMovies(fetcher f.Fetcher) []models.LetterboxdMovieData {
 }
 
 func getPosterURL(fetcher f.Fetcher, filmSlug string) string {
-	body := fetcher.FetchData(f.FetcherParams{
+	body, _ := fetcher.FetchData(f.FetcherParams{
 		Method: "GET",
 		Url:    "https://letterboxd.com/ajax/poster/film/" + filmSlug + "/std/150x225/",
 		Body:   nil,
@@ -148,7 +148,7 @@ func getPosterURL(fetcher f.Fetcher, filmSlug string) string {
 
 	parsedBody, _ := html.Parse(strings.NewReader(string(body)))
 
-	imgNode := gs.GetNodeByClass(parsedBody, &gs.HtmlSelector{
+	imgNode := gs.GetNodeBySelector(parsedBody, &gs.HtmlSelector{
 		Id:         "",
 		Tag:        "img",
 		ClassNames: "image",

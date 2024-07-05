@@ -24,6 +24,7 @@ func (c *Conn) GetBackgrounds() *[]Background {
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer rows.Close()
 
 	rows.Scan()
 
