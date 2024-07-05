@@ -70,6 +70,7 @@ func Init() {
 	}
 
 	proxies = f.InitFetchers(filepath.Join(basepath, ".."))
+	static.SetProxies(proxies)
 	moduleService = mod.ModuleService{
 		Proxies: proxies,
 	}

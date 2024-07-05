@@ -64,7 +64,7 @@ func renderQbittorrentDataConstructor(rdb *redis.Client, name string, position s
 }
 
 func GetQbittorentGlobalData(fetcher f.Fetcher, host string, port string) models.QbittorrentGlobalData {
-	body := fetcher.FetchData(f.FetcherParams{
+	body, _ := fetcher.FetchData(f.FetcherParams{
 		Method: "GET",
 		Url:    fmt.Sprintf("http://%s:%s/api/v2/sync/maindata", host, port),
 		Body:   nil,

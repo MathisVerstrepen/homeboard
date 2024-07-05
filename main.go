@@ -46,6 +46,12 @@ func main() {
 	e.POST("/settings/backgrounds/selected/:id", handlers.SettingsSetSelectedBackgroundfunc)
 	e.DELETE("/settings/backgrounds/:id", handlers.SettingsDeleteBackground)
 
+	// ---- Linkhub Routes ---- //
+	e.GET("/linkhub", handlers.LinkHub)
+	e.GET("/linkhub/:id", handlers.LinkHubId)
+	e.GET("/linkhub/image/:id", handlers.LinkHubImageDetails)
+	e.POST("/linkhub/site", handlers.LinkHubPostSite)
+
 	// ---- Global Routes ---- //
 	e.GET("/ping", handlers.GlobalPing)
 	e.GET("/ws", handlers.GlobalHotReloadWS)
